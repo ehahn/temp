@@ -61,9 +61,25 @@ grammar = {
     Rule("Det", ["a"])
 }
 
+unary_grammar = {
+    Rule("S", ["NP", "VP"]),
+    Rule("VP", ["V"]),
+    Rule("NP", ["John"]),
+    Rule("V", ["eats"])
+}
+
+unary_grammar2 = {
+    Rule("S", ["S2"]),
+    Rule("NP", ["she"]),
+    Rule("S2", ["NP", "VP"]),
+    Rule("VP", ["eats"])
+}
+
 
 class TestParse(TestCase):
     correct_sentence = [("she", "NP"), ("eats", "V"), ("a", "Det"), ("fish", "N")]
+    correct_unary_sentence = [("John", "NP"), ("eats", "V")]
+    correct_unary_sentence2 = [("she", "NP"), ("eats", "VP")]
     def test_init(self):
         result = cyk_init(Grammar(grammar).pospruned, self.correct_sentence)
         expected = defaultdict(lambda: False,
@@ -82,25 +98,23 @@ class TestParse(TestCase):
     def test_false(self):
         self.assertIsNone(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
 
+    def test_unary_true(self):
+        self.assertIsNotNone(parse(unary_grammar, self.correct_unary_sentence))
+
+    def test_unary_false(self):
+        self.assertIsNone(parse(unary_grammar, [("eats", "V"), ("John", "NP")]))
+
+    def test_unary_true2(self):
+        self.assertIsNotNone(parse(unary_grammar2, self.correct_unary_sentence2))
+
+
+
 class TestGrammar(TestCase):
     def setUp(self):
         self.g = Grammar(grammar)
         self.gp = self.g.pospruned
 
     
-    def test_unary_rules(self):
-        return
-        self.assertEqual(set(self.g.unary_rules),
-        {
-            Rule("VP", ["eats"]),
-            Rule("NP", ["she"]),
-            Rule("V", ["eats"]),
-            Rule("P", ["with"]),
-            Rule("N", ["fish"]),
-            Rule("N", ["fork"]),
-            Rule("Det", ["a"])
-        })
-
     def test_pospruned(self):
         self.assertEqual(set(self.g.pospruned.rules),
         {
@@ -117,6 +131,22 @@ class TestGrammar(TestCase):
             Rule(PospruningTag("N"), ("N",)),
             Rule(PospruningTag("Det"), ("Det",))
         })
+
+class TestGrammarUnary(TestCase):
+    def setUp(self):
+        self.g = Grammar(unary_grammar)
+        self.gp = self.g.pospruned
+
+    def test_pospruned(self):
+        self.assertEqual(set(self.g.pospruned.rules),
+        {
+            Rule("S", (PospruningTag("NP"), "VP")),
+            Rule("VP", (PospruningTag("V"),)),
+            Rule(PospruningTag("NP"), ("NP",)),
+            Rule(PospruningTag("V"), ("V",))
+        })
+
+
 
 if __name__ == '__main__':
     main()

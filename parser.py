@@ -105,14 +105,31 @@ class Grammar:
         return self._nnary_rules(2)
 
     @property
+    def nonterminal_symbols(self):
+        for rule in self.rules:
+            yield rule.left_side
+
+    @property
+    def terminal_rules(self):
+        for rule in self.unary_rules:
+            if rule.right_side[0] not in self.nonterminal_symbols:
+                yield rule
+
+    @property
+    def nonterminal_rules(self):
+        for rule in self.rules:
+            if rule not in self.terminal_rules:
+                yield rule
+
+    @property
     def pospruned(self):
         grammar = set()
         terminals = set()
-        for rule in self.unary_rules:
+        for rule in self.terminal_rules:
             grammar.add(Rule(PospruningTag(rule.left_side), [rule.left_side]))
             terminals.add(rule.left_side)
         for rule in grammar: assert len(rule.right_side) == 1
-        for rule in self.binary_rules:
+        for rule in self.nonterminal_rules:
             new_left =  PospruningTag(rule.left_side) if rule.left_side in terminals else rule.left_side
             new_right = map((lambda x: PospruningTag(x) if x in terminals else x), rule.right_side)
             grammar.add(Rule(new_left, new_right))
@@ -146,16 +163,27 @@ def parse(grammar, text):
     text -- a list of (word: str, pos: str) tuples
     """
     grammar = Grammar(grammar).pospruned
+    print(list(grammar.unary_rules))
     p = cyk_init(grammar, text)
     text_len = len(text)
+    def apply_binary_rules():
+        for rule in grammar.binary_rules:
+            if p[start, partition, rule.right_side[0]] and p[start+partition, length-partition, 
+                                                            rule.right_side[1]]:
+                p[start, length, rule.left_side] = True
+    def apply_unary_rules():
+        for rule in grammar.unary_rules:
+            if p[start, length, rule.right_side[0]]:
+                p[start, length, rule.left_side] = True
     del text
+    length = 1
+    for start in irange(1, text_len-length + 1):
+        apply_unary_rules()
     for length in irange(2, text_len):
         for start in irange(1, text_len-length+1):
             for partition in irange(1, length-1):
-                for rule in grammar.binary_rules:
-                    if p[start, partition, rule.right_side[0]] and p[start+partition, length-partition, 
-                                                                    rule.right_side[1]]:
-                        p[start, length, rule.left_side] = True
+                apply_binary_rules()
+            apply_unary_rules()
 
     if p[1, text_len, "S"]:
         return True
