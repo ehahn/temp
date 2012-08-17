@@ -3,7 +3,7 @@
 from unittest import TestCase, main, skip
 from parser import *
 
-@skip
+
 class TreeTest(TestCase):
     def test_multiple_children(self):
         children = [1, 2]
@@ -19,7 +19,7 @@ class TreeTest(TestCase):
 #        self.assertEquals(
 
 
-@skip
+
 class TestRule(TestCase):
     def test_split_simple(self):
         rule = Rule("a", ["b", "c"])
@@ -61,10 +61,24 @@ grammar = {
     Rule("Det", ["a"])
 }
 
-@skip
+
 class TestParse(TestCase):
+    correct_sentence = [("she", "NP"), ("eats", "V"), ("a", "Det"), ("fish", "N")]
+    def test_init(self):
+        result = cyk_init(Grammar(grammar).pospruned, self.correct_sentence)
+        expected = defaultdict(lambda: False,
+            {
+                (1, 1, PospruningTag("NP")): True,
+                (2, 1, PospruningTag("V")): True,
+                (3, 1, PospruningTag("Det")): True,
+                (4, 1, PospruningTag("N")): True
+            }
+            )
+        self.assertEqual(set(result.items()), set(expected.items()))
+
+    @skip
     def test_true(self):
-        self.assertIsNotNone(parse(grammar, [("she", "NP"), ("eats", "V"), ("a", "Det"), ("fish", "N")]))
+        self.assertIsNotNone(parse(grammar, correct_sentence))
 
     #def test_false(self):
     #    self.assertIsNone(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
@@ -74,7 +88,7 @@ class TestGrammar(TestCase):
         self.g = Grammar(grammar)
         self.gp = self.g.pospruned
 
-    @skip
+    
     def test_unary_rules(self):
         return
         self.assertEqual(set(self.g.unary_rules),

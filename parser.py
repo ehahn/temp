@@ -125,6 +125,17 @@ def irange(start, end):
     """Intuitive range"""
     return range(start, end+1)
 
+def cyk_init(grammar, text):
+    p = defaultdict(lambda: False)
+    for raw_i, word in enumerate(text):
+        index = raw_i + 1 # p is 1-indexed
+        postag = word[1]
+        for rule in grammar.unary_rules:
+            if rule.right_side[0] == postag:
+                p[(index, 1, rule.left_side)] = True
+    return p
+
+
 
 def parse(grammar, text):
     """
