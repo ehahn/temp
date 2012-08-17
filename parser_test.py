@@ -39,6 +39,23 @@ class TestRule(TestCase):
         rule3 = Rule("a", ["b", "c"])
         self.assertEqual(rule1, rule3)
 
+class TestParse(TestCase):
+    grammar = {
+        Rule("S", ["NP", "VP"]),
+        Rule("VP", ["VP", "PP"]),
+        Rule("VP", ["V", "NP"]),
+        Rule("VP", ["eats"]),
+        Rule("PP", ["P", "NP"]),
+        Rule("NP", ["Det", "N"]),
+        Rule("NP", ["she"]),
+        Rule("V", ["eats"]),
+        Rule("P", ["with"]),
+        Rule("N", ["fish"]),
+        Rule("N", ["fork"]),
+        Rule("Det", ["a"])
+    }
+    def test_true(self):
+        self.assertIsNotNone(parse(self.grammar, [("she", "NP"), ("eats", "V"), ("fish", "N")]))
 
 if __name__ == '__main__':
     main()

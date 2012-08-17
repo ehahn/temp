@@ -77,5 +77,8 @@ def to_cnf(grammar):
 
     Returns a list of Rule objects.
     """
-    pass
-    # binarize
+    ret = set()
+    for rule in grammar:
+        ret |= set(rule.split())
+    return ret
+    # TODO: chain rules, empty right hand
