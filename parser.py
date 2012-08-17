@@ -46,7 +46,8 @@ class Rule:
         return 23 * hash(self.left_side) + 29 * hash(self.right_side)
 
     def __repr__(self):
-        return "Rule (" + ",".join([repr(self.left_side), repr(self.right_side)]) + ")"
+        return str.format("Rule(left_side={}, right_side={})", repr(self.left_side),
+            repr(self.right_side))
 
 class SplitTag:
     def __init__(self, members):
@@ -62,7 +63,7 @@ class SplitTag:
         return "SplitTag (" + repr(self._members) + ")"
 
 
-class Probability:
+class Probabability:
     """
     Whenever I need to store a probability, I use this class instead of a float.
     That way I can easily replace how I store them.
@@ -144,33 +145,19 @@ def parse(grammar, text):
     grammar -- a list of Rule objects
     text -- a list of (word: str, pos: str) tuples
     """
-    grammar = Grammar(grammar)
-    p = defaultdict(lambda: False) # {(start, length, tag): bool}
-    for index in range(1, len(text)):
-        for rule in grammar.unary_rules:
-            print(rule)
-            if rule.right_side[0] == (text[index][0]):
-                p[index, 1, rule.left_side] = True
-    assert len(p.keys()) >= len(text)
-    for length in irange(2, len(text)):
-        for start in irange(1, len(text)-length+1):
+    grammar = Grammar(grammar).pospruned
+    p = cyk_init(grammar, text)
+    text_len = len(text)
+    del text
+    for length in irange(2, text_len):
+        for start in irange(1, text_len-length+1):
             for partition in irange(1, length-1):
                 for rule in grammar.binary_rules:
-                    print(start)
-                    print(partition)
-                    print(rule.right_side)
-                    print()
-                    if p[start, partition, rule.right_side[0]] and p[start+partition, length, rule.right_side[1]]:
+                    if p[start, partition, rule.right_side[0]] and p[start+partition, length-partition, 
+                                                                    rule.right_side[1]]:
                         p[start, length, rule.left_side] = True
 
-    from copy import copy
-    p2 = copy(p)
-    for x in p2:
-        if p[x] is False:
-            del p[x]
-    #p = p2
-    print(p)
-    if p[1, len(text), "S"]:
+    if p[1, text_len, "S"]:
         return True
     else:
         return None

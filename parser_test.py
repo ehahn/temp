@@ -76,12 +76,11 @@ class TestParse(TestCase):
             )
         self.assertEqual(set(result.items()), set(expected.items()))
 
-    @skip
     def test_true(self):
-        self.assertIsNotNone(parse(grammar, correct_sentence))
+        self.assertIsNotNone(parse(grammar, self.correct_sentence))
 
-    #def test_false(self):
-    #    self.assertIsNone(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
+    def test_false(self):
+        self.assertIsNone(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
 
 class TestGrammar(TestCase):
     def setUp(self):
