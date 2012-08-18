@@ -81,13 +81,13 @@ class TestParse(TestCase):
     correct_unary_sentence = [("John", "NP"), ("eats", "V")]
     correct_unary_sentence2 = [("she", "NP"), ("eats", "VP")]
     def test_init(self):
-        result = cyk_init(Grammar(grammar).pospruned, self.correct_sentence)
+        result = init_chart(Grammar(grammar).pospruned, self.correct_sentence)
         expected = defaultdict(lambda: False,
             {
-                (1, 1, PosLeaf("NP")): True,
-                (2, 1, PosLeaf("V")): True,
-                (3, 1, PosLeaf("Det")): True,
-                (4, 1, PosLeaf("N")): True
+                (1, 1, PosTerminal("NP")): True,
+                (2, 1, PosTerminal("V")): True,
+                (3, 1, PosTerminal("Det")): True,
+                (4, 1, PosTerminal("N")): True
             }
             )
         self.assertEqual(set(result.items()), set(expected.items()))
@@ -132,18 +132,18 @@ class TestGrammar(TestCase):
     def test_pospruned(self):
         self.assertEqual(set(self.g.pospruned.rules),
         {
-            Rule("S", (PosLeaf("NP"), PosLeaf("VP"))),
-            Rule(PosLeaf("VP"), (PosLeaf("VP"), "PP")),
-            Rule(PosLeaf("VP"), (PosLeaf("V"), PosLeaf("NP"))),
-            Rule(PosLeaf("VP"), ("VP",)),
-            Rule("PP", (PosLeaf("P"), PosLeaf("NP"))),
-            Rule(PosLeaf("NP"), (PosLeaf("Det"), PosLeaf("N"))),
-            Rule(PosLeaf("NP"), ("NP",)),
-            Rule(PosLeaf("V"), ("V",)),
-            Rule(PosLeaf("P"), ("P",)),
-            Rule(PosLeaf("N"), ("N",)),
-            Rule(PosLeaf("N"), ("N",)),
-            Rule(PosLeaf("Det"), ("Det",))
+            Rule("S", (PosTerminal("NP"), PosTerminal("VP"))),
+            Rule(PosTerminal("VP"), (PosTerminal("VP"), "PP")),
+            Rule(PosTerminal("VP"), (PosTerminal("V"), PosTerminal("NP"))),
+            Rule(PosTerminal("VP"), ("VP",)),
+            Rule("PP", (PosTerminal("P"), PosTerminal("NP"))),
+            Rule(PosTerminal("NP"), (PosTerminal("Det"), PosTerminal("N"))),
+            Rule(PosTerminal("NP"), ("NP",)),
+            Rule(PosTerminal("V"), ("V",)),
+            Rule(PosTerminal("P"), ("P",)),
+            Rule(PosTerminal("N"), ("N",)),
+            Rule(PosTerminal("N"), ("N",)),
+            Rule(PosTerminal("Det"), ("Det",))
         })
 
 class TestGrammarUnary(TestCase):
@@ -154,10 +154,10 @@ class TestGrammarUnary(TestCase):
     def test_pospruned(self):
         self.assertEqual(set(self.g.pospruned.rules),
         {
-            Rule("S", (PosLeaf("NP"), "VP")),
-            Rule("VP", (PosLeaf("V"),)),
-            Rule(PosLeaf("NP"), ("NP",)),
-            Rule(PosLeaf("V"), ("V",))
+            Rule("S", (PosTerminal("NP"), "VP")),
+            Rule("VP", (PosTerminal("V"),)),
+            Rule(PosTerminal("NP"), ("NP",)),
+            Rule(PosTerminal("V"), ("V",))
         })
 
 

@@ -7,6 +7,10 @@ class Tree:
     def __init__(self, type_, *children):
         self.children = children
         self.type_ = type_
+        self.probability = Probability(1)
+
+    def set_probability(self, prob: float):
+        self.probability = Probability(prob)
 
 class Leaf:
     def __init__(self, word):
@@ -21,11 +25,11 @@ class Rule:
         right_side: right side of the rule, a tuple
         probability: probability of the rule
     """
-    def __init__(self, left_side, right_side, probability=None):
+    def __init__(self, left_side, right_side, probability=1):
         # TODO: make probabiltiy non-optional
         self.left_side = left_side
         self.right_side = tuple(right_side)
-        self.probability = probability
+        self.probability = Probability(probability)
 
     def split(self):
         if len(self.right_side) <= 2:
@@ -46,8 +50,8 @@ class Rule:
         return 23 * hash(self.left_side) + 29 * hash(self.right_side)
 
     def __repr__(self):
-        return str.format("Rule(left_side={}, right_side={})", repr(self.left_side),
-            repr(self.right_side))
+        return str.format("Rule(left_side={}, right_side={}, probability={})", repr(self.left_side),
+            repr(self.right_side), repr(self.probability))
 
 class SplitTag:
     def __init__(self, members):
@@ -63,7 +67,7 @@ class SplitTag:
         return "SplitTag (" + repr(self._members) + ")"
 
 
-class Probabability:
+class Probability:
     """
     Whenever I need to store a probability, I use this class instead of a float.
     That way I can easily replace how I store them.
@@ -71,7 +75,7 @@ class Probabability:
     def __init__(self, prob: float):
         self._prob = prob
 
-class PosLeaf:
+class PosTerminal:
     def __init__(self, postag):
         self._postag = postag
 
@@ -85,7 +89,7 @@ class PosLeaf:
         return hash(self._postag)
         
     def __repr__(self):
-        return "PosLeaf(" + self._postag + ")"
+        return "PosTerminal(" + self._postag + ")"
 
 class Grammar:
     def __init__(self, grammar):
@@ -126,12 +130,12 @@ class Grammar:
         grammar = set()
         terminals = set()
         for rule in self.terminal_rules:
-            grammar.add(Rule(PosLeaf(rule.left_side), [rule.left_side]))
+            grammar.add(Rule(PosTerminal(rule.left_side), [rule.left_side]))
             terminals.add(rule.left_side)
         for rule in grammar: assert len(rule.right_side) == 1
         for rule in self.nonterminal_rules:
-            new_left =  PosLeaf(rule.left_side) if rule.left_side in terminals else rule.left_side
-            new_right = map((lambda x: PosLeaf(x) if x in terminals else x), rule.right_side)
+            new_left =  PosTerminal(rule.left_side) if rule.left_side in terminals else rule.left_side
+            new_right = map((lambda x: PosTerminal(x) if x in terminals else x), rule.right_side)
             grammar.add(Rule(new_left, new_right))
         return Grammar(grammar)
         
@@ -143,20 +147,20 @@ def irange(start, end):
     """Intuitive range"""
     return range(start, end+1)
 
-def cyk_init(grammar, text):
-    p = defaultdict(lambda: False)
+def init_chart(grammar, text):
+    ret = defaultdict(lambda: False)
     for raw_i, word in enumerate(text):
         index = raw_i + 1 # p is 1-indexed
         postag = word[1]
         for rule in grammar.unary_rules:
             if rule.right_side[0] == postag:
-                p[(index, 1, rule.left_side)] = True
-    return p
+                ret[(index, 1, rule.left_side)] = True
+    return ret
 
 
-def cyk_chart(grammar, text):
+def build_chart(grammar, text):
     grammar = Grammar(grammar).pospruned
-    ret = cyk_init(grammar, text)
+    ret = init_chart(grammar, text)
     text_len = len(text)
     def apply_binary_rules():
         for rule in grammar.binary_rules:
@@ -179,7 +183,6 @@ def cyk_chart(grammar, text):
     return ret
 
 
-
 def parse(grammar, text):
     """
     Return None if the text doesn't match the grammar.
@@ -187,7 +190,7 @@ def parse(grammar, text):
     grammar -- a list of Rule objects
     text -- a list of (word: str, pos: str) tuples
     """
-    chart = cyk_chart(grammar, text)
+    chart = build_chart(grammar, text)
     if chart[1, len(text), "S"]:
         return True
     else:
