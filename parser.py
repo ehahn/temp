@@ -4,13 +4,13 @@ from collections import defaultdict
 from copy import copy
 
 class Tree:
-    def __init__(self, type_, children):
+    def __init__(self, type_, *children):
         self.children = children
         self.type_ = type_
 
 class Leaf:
-    def __init__(self, pos):
-        self.pos = pos
+    def __init__(self, word):
+        self.word = word
 
 class Rule:
     """
@@ -71,7 +71,7 @@ class Probabability:
     def __init__(self, prob: float):
         self._prob = prob
 
-class PospruningTag:
+class PosLeaf:
     def __init__(self, postag):
         self._postag = postag
 
@@ -85,7 +85,7 @@ class PospruningTag:
         return hash(self._postag)
         
     def __repr__(self):
-        return "PospruningTag(" + self._postag + ")"
+        return "PosLeaf(" + self._postag + ")"
 
 class Grammar:
     def __init__(self, grammar):
@@ -126,12 +126,12 @@ class Grammar:
         grammar = set()
         terminals = set()
         for rule in self.terminal_rules:
-            grammar.add(Rule(PospruningTag(rule.left_side), [rule.left_side]))
+            grammar.add(Rule(PosLeaf(rule.left_side), [rule.left_side]))
             terminals.add(rule.left_side)
         for rule in grammar: assert len(rule.right_side) == 1
         for rule in self.nonterminal_rules:
-            new_left =  PospruningTag(rule.left_side) if rule.left_side in terminals else rule.left_side
-            new_right = map((lambda x: PospruningTag(x) if x in terminals else x), rule.right_side)
+            new_left =  PosLeaf(rule.left_side) if rule.left_side in terminals else rule.left_side
+            new_right = map((lambda x: PosLeaf(x) if x in terminals else x), rule.right_side)
             grammar.add(Rule(new_left, new_right))
         return Grammar(grammar)
         
@@ -154,27 +154,19 @@ def cyk_init(grammar, text):
     return p
 
 
-
-def parse(grammar, text):
-    """
-    Return None if the text doesn't match the grammar.
-
-    grammar -- a list of Rule objects
-    text -- a list of (word: str, pos: str) tuples
-    """
+def cyk_chart(grammar, text):
     grammar = Grammar(grammar).pospruned
-    print(list(grammar.unary_rules))
-    p = cyk_init(grammar, text)
+    ret = cyk_init(grammar, text)
     text_len = len(text)
     def apply_binary_rules():
         for rule in grammar.binary_rules:
-            if p[start, partition, rule.right_side[0]] and p[start+partition, length-partition, 
+            if ret[start, partition, rule.right_side[0]] and ret[start+partition, length-partition, 
                                                             rule.right_side[1]]:
-                p[start, length, rule.left_side] = True
+                ret[start, length, rule.left_side] = True
     def apply_unary_rules():
         for rule in grammar.unary_rules:
-            if p[start, length, rule.right_side[0]]:
-                p[start, length, rule.left_side] = True
+            if ret[start, length, rule.right_side[0]]:
+                ret[start, length, rule.left_side] = True
     del text
     length = 1
     for start in irange(1, text_len-length + 1):
@@ -184,8 +176,19 @@ def parse(grammar, text):
             for partition in irange(1, length-1):
                 apply_binary_rules()
             apply_unary_rules()
+    return ret
 
-    if p[1, text_len, "S"]:
+
+
+def parse(grammar, text):
+    """
+    Return None if the text doesn't match the grammar.
+
+    grammar -- a list of Rule objects
+    text -- a list of (word: str, pos: str) tuples
+    """
+    chart = cyk_chart(grammar, text)
+    if chart[1, len(text), "S"]:
         return True
     else:
         return None

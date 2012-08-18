@@ -7,8 +7,8 @@ from parser import *
 class TreeTest(TestCase):
     def test_multiple_children(self):
         children = [1, 2]
-        tree = Tree(None, children)
-        self.assertEqual(tree.children, children)
+        tree = Tree(None, *children)
+        self.assertEqual(tree.children, tuple(children))
 
 #class TestCNF(TestCase):
 #    def test_binarize(self):
@@ -84,10 +84,10 @@ class TestParse(TestCase):
         result = cyk_init(Grammar(grammar).pospruned, self.correct_sentence)
         expected = defaultdict(lambda: False,
             {
-                (1, 1, PospruningTag("NP")): True,
-                (2, 1, PospruningTag("V")): True,
-                (3, 1, PospruningTag("Det")): True,
-                (4, 1, PospruningTag("N")): True
+                (1, 1, PosLeaf("NP")): True,
+                (2, 1, PosLeaf("V")): True,
+                (3, 1, PosLeaf("Det")): True,
+                (4, 1, PosLeaf("N")): True
             }
             )
         self.assertEqual(set(result.items()), set(expected.items()))
@@ -107,6 +107,20 @@ class TestParse(TestCase):
     def test_unary_true2(self):
         self.assertIsNotNone(parse(unary_grammar2, self.correct_unary_sentence2))
 
+    def test_tree(self):
+        expected = Tree("S",
+            Tree("NP", Leaf("she")),
+            Tree("VP",
+                Tree("V", Leaf("eats")),
+                Tree("NP",
+                    Tree("Det", Leaf("a")),
+                    Tree("N", Leaf("fish"))
+                )
+            )
+        )
+        self.assertEqual(set(parse(grammar, self.correct_sentence)), {expected})
+
+
 
 
 class TestGrammar(TestCase):
@@ -118,18 +132,18 @@ class TestGrammar(TestCase):
     def test_pospruned(self):
         self.assertEqual(set(self.g.pospruned.rules),
         {
-            Rule("S", (PospruningTag("NP"), PospruningTag("VP"))),
-            Rule(PospruningTag("VP"), (PospruningTag("VP"), "PP")),
-            Rule(PospruningTag("VP"), (PospruningTag("V"), PospruningTag("NP"))),
-            Rule(PospruningTag("VP"), ("VP",)),
-            Rule("PP", (PospruningTag("P"), PospruningTag("NP"))),
-            Rule(PospruningTag("NP"), (PospruningTag("Det"), PospruningTag("N"))),
-            Rule(PospruningTag("NP"), ("NP",)),
-            Rule(PospruningTag("V"), ("V",)),
-            Rule(PospruningTag("P"), ("P",)),
-            Rule(PospruningTag("N"), ("N",)),
-            Rule(PospruningTag("N"), ("N",)),
-            Rule(PospruningTag("Det"), ("Det",))
+            Rule("S", (PosLeaf("NP"), PosLeaf("VP"))),
+            Rule(PosLeaf("VP"), (PosLeaf("VP"), "PP")),
+            Rule(PosLeaf("VP"), (PosLeaf("V"), PosLeaf("NP"))),
+            Rule(PosLeaf("VP"), ("VP",)),
+            Rule("PP", (PosLeaf("P"), PosLeaf("NP"))),
+            Rule(PosLeaf("NP"), (PosLeaf("Det"), PosLeaf("N"))),
+            Rule(PosLeaf("NP"), ("NP",)),
+            Rule(PosLeaf("V"), ("V",)),
+            Rule(PosLeaf("P"), ("P",)),
+            Rule(PosLeaf("N"), ("N",)),
+            Rule(PosLeaf("N"), ("N",)),
+            Rule(PosLeaf("Det"), ("Det",))
         })
 
 class TestGrammarUnary(TestCase):
@@ -140,10 +154,10 @@ class TestGrammarUnary(TestCase):
     def test_pospruned(self):
         self.assertEqual(set(self.g.pospruned.rules),
         {
-            Rule("S", (PospruningTag("NP"), "VP")),
-            Rule("VP", (PospruningTag("V"),)),
-            Rule(PospruningTag("NP"), ("NP",)),
-            Rule(PospruningTag("V"), ("V",))
+            Rule("S", (PosLeaf("NP"), "VP")),
+            Rule("VP", (PosLeaf("V"),)),
+            Rule(PosLeaf("NP"), ("NP",)),
+            Rule(PosLeaf("V"), ("V",))
         })
 
 
