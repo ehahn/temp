@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.2
 
-from unittest import TestCase, main, skip
+from unittest import TestCase, main, skip, expectedFailure
 from parser import *
 from util import empty
 
@@ -19,7 +19,27 @@ class TreeTest(TestCase):
 #        expected = 
 #        self.assertEquals(
 
+WORDTREE = Tree("S",
+            Tree("NP", Tree("she")),
+            Tree("VP",
+                Tree("V", Tree("eats")),
+                Tree("NP",
+                    Tree("Det", Tree("a")),
+                    Tree("N", Tree("fish"))
+                )
+            )
+        )
 
+POSTREE = Tree("S",
+            Tree("NP", Tree(PosTerminal("NP"))),
+            Tree("VP",
+                Tree("V", Tree(PosTerminal("V"))),
+                Tree("NP",
+                    Tree("Det", Tree(PosTerminal("Det"))),
+                    Tree("N", Tree(PosTerminal("N")))
+                )
+            )
+        )
 
 class TestRule(TestCase):
     def test_split_simple(self):
@@ -132,24 +152,15 @@ class TestParse(TestCase):
             self.assertNotIsInstance(rule.left_side, PosTerminal)
 
     def test_tree_raw(self):
-        expected = Tree("S",
-            Tree("NP", Tree(PosTerminal("NP"))),
-            Tree("VP",
-                Tree("V", Tree(PosTerminal("V"))),
-                Tree("NP",
-                    Tree("Det", Tree(PosTerminal("Det"))),
-                    Tree("N", Tree(PosTerminal("N")))
-                )
-            )
-        )
+        expected =  POSTREE
         found = set(parse(grammar, self.correct_sentence, keep_posleafs=True))
-        try:
-            self.assertEqual(found, {expected})
-        except AssertionError:
-            #print(found[0])
-            #print(expected)
-            raise
+        self.assertEqual(found, {expected})
 
+    @expectedFailure
+    def test_tree(self):
+        expected = WORDTREE
+        found = set(parse(grammar, self.correct_sentence, keep_posleafs=True))
+        self.assertEqual(found, {expected})
 
 
 class TestGrammar(TestCase):
@@ -209,6 +220,17 @@ class TestGrammarUnary(TestCase):
             Rule("VP", ["V"])
         })
 
+class TestTree(TestCase):
+    def test_preterminals(self):
+        tree = POSTREE
+        result = list(tree.preterminals())
+        expected = [
+            Tree("NP", Tree(PosTerminal("NP"))),
+            Tree("V", Tree(PosTerminal("V"))),
+            Tree("Det", Tree(PosTerminal("Det"))),
+            Tree("N", Tree(PosTerminal("N")))
+        ]
+        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':

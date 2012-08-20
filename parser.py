@@ -1,6 +1,6 @@
 #! /usr/bin/env python3.2
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from copy import copy
 from util import empty
 
@@ -29,16 +29,28 @@ class Tree:
         return hash(self.children) * 7 + hash(self.type_) * 13
 
     def __str__(self, indent=0):
-        ret = " " * indent + "(" + str(self.type_) + "\n"
+        ret = " " * indent + "(" + str(self.type_) 
         for child in self.children:
             assert isinstance(child, Tree)
             ret += child.__str__(indent + 1)
         ret += " " * indent + ")"
-        ret += "\n"
         return ret
 
     def __repr__(self):
         return str(self)
+
+    def preterminals(self):
+        agenda = deque([self])
+        while not empty(agenda):
+            cur = agenda.pop()
+            print(cur)
+            if len(cur.children) == 1 and empty(cur.children[0].children):
+                yield cur
+            else:
+                agenda.extend(reversed(cur.children))
+
+
+
 
 
 class Rule:
@@ -199,6 +211,8 @@ def build_chart(grammar, text):
             apply_unary_rules()
     return ret
 
+def replace_leafs_by_words(tree, text):
+    return tree # STUB
 
 def parse(grammar, text, keep_posleafs=False):
     """
@@ -208,7 +222,10 @@ def parse(grammar, text, keep_posleafs=False):
     text -- a list of (word: str, pos: str) tuples
     """
     chart = build_chart(grammar, text)
-    return chart[1, len(text), "S"]
+    ret_tree = chart[1, len(text), "S"]
+    if not keep_posleafs:
+        ret_tree = replace_leafs_by_words(ret_tree, text)
+    return ret_tree
 
 
 def to_cnf(grammar):
