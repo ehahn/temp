@@ -119,7 +119,7 @@ class TestParse(TestCase):
         self.assertTrue(parse(grammar, self.correct_sentence))
 
     def test_false(self):
-        self.assertFalse(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
+        self.assertFalse(list(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")])))
 
     def test_unary_true(self):
         self.assertTrue(parse(unary_grammar, self.correct_unary_sentence))
@@ -156,11 +156,13 @@ class TestParse(TestCase):
         found = set(parse(grammar, self.correct_sentence, keep_posleafs=True))
         self.assertEqual(found, {expected})
 
-    @expectedFailure
     def test_tree(self):
         expected = WORDTREE
-        found = set(parse(grammar, self.correct_sentence, keep_posleafs=True))
-        self.assertEqual(found, {expected})
+        found = set(parse(grammar, self.correct_sentence, keep_posleafs=False))
+        self.assertEqual(list(found)[0], expected)
+        self.assertEqual(len(found), 1)
+        # This doesn't work as expected
+        #self.assertEqual(found, {expected})
 
 
 class TestGrammar(TestCase):

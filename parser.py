@@ -20,10 +20,11 @@ class Tree:
         self.probability = Probability(prob)
 
     def __eq__(self, other):
-        try:
-            return self.children == other.children and self.type_ == other.type_
-        except NameError:
-            return False
+        ret = self.children == other.children and self.type_ == other.type_
+        if not ret:
+            print("children", self.children == other.children)
+            print("type", self.type_ == other.type_)
+        return ret
 
     def __hash__(self):
         return hash(self.children) * 7 + hash(self.type_) * 13
@@ -34,6 +35,7 @@ class Tree:
             assert isinstance(child, Tree)
             ret += child.__str__(indent + 1)
         ret += " " * indent + ")"
+        ret += "\n"
         return ret
 
     def __repr__(self):
@@ -43,7 +45,6 @@ class Tree:
         agenda = deque([self])
         while not empty(agenda):
             cur = agenda.pop()
-            print(cur)
             if len(cur.children) == 1 and empty(cur.children[0].children):
                 yield cur
             else:
@@ -120,9 +121,9 @@ class PosTerminal:
         self._postag = postag
 
     def __eq__(self, other):
-        try:
+        if isinstance(other, PosTerminal):
             return self._postag == other._postag
-        except AttributeError:
+        else:
             return False
 
     def __hash__(self):
@@ -212,7 +213,15 @@ def build_chart(grammar, text):
     return ret
 
 def replace_leafs_by_words(tree, text):
-    return tree # STUB
+    text_iterator = iter(text)
+    for preterminal in tree.preterminals():
+        terminal = preterminal.children[0]
+        #print(terminal)
+        word, pos = next(text_iterator)
+        #print(word, pos)
+        assert terminal.type_ == PosTerminal(pos)
+        terminal.type_ = word
+        #print(terminal)
 
 def parse(grammar, text, keep_posleafs=False):
     """
@@ -222,10 +231,11 @@ def parse(grammar, text, keep_posleafs=False):
     text -- a list of (word: str, pos: str) tuples
     """
     chart = build_chart(grammar, text)
-    ret_tree = chart[1, len(text), "S"]
+    ret_trees = chart[1, len(text), "S"]
     if not keep_posleafs:
-        ret_tree = replace_leafs_by_words(ret_tree, text)
-    return ret_tree
+        for tree in ret_trees:
+            replace_leafs_by_words(tree, text)
+    return ret_trees
 
 
 def to_cnf(grammar):
