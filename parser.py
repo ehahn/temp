@@ -2,19 +2,44 @@
 
 from collections import defaultdict
 from copy import copy
+from util import empty
 
 class Tree:
     def __init__(self, type_, *children):
         self.children = children
+        for child in children:
+            if not isinstance(child, Tree):
+                print()
+                print("type", type_)
+                print("child", child)
+                raise AssertionError
         self.type_ = type_
         self.probability = Probability(1)
 
     def set_probability(self, prob: float):
         self.probability = Probability(prob)
 
-class Leaf:
-    def __init__(self, word):
-        self.word = word
+    def __eq__(self, other):
+        try:
+            return self.children == other.children and self.type_ == other.type_
+        except NameError:
+            return False
+
+    def __hash__(self):
+        return hash(self.children) * 7 + hash(self.type_) * 13
+
+    def __str__(self, indent=0):
+        ret = " " * indent + "(" + str(self.type_) + "\n"
+        for child in self.children:
+            assert isinstance(child, Tree)
+            ret += child.__str__(indent + 1)
+        ret += " " * indent + ")"
+        ret += "\n"
+        return ret
+
+    def __repr__(self):
+        return str(self)
+
 
 class Rule:
     """
@@ -50,7 +75,7 @@ class Rule:
         return 23 * hash(self.left_side) + 29 * hash(self.right_side)
 
     def __repr__(self):
-        return str.format("Rule(left_side={}, right_side={}, probability={})", repr(self.left_side),
+        return str.format("Rule(left_side={}, right_side={}, {})", repr(self.left_side),
             repr(self.right_side), repr(self.probability))
 
 class SplitTag:
@@ -74,6 +99,9 @@ class Probability:
     """
     def __init__(self, prob: float):
         self._prob = prob
+
+    def __repr__(self):
+        return "Probability(" + repr(self._prob) + ")"
 
 class PosTerminal:
     def __init__(self, postag):
@@ -125,52 +153,41 @@ class Grammar:
             if rule not in self.terminal_rules:
                 yield rule
 
-    @property
-    def pospruned(self):
-        grammar = set()
-        terminals = set()
-        for rule in self.terminal_rules:
-            grammar.add(Rule(PosTerminal(rule.left_side), [rule.left_side]))
-            terminals.add(rule.left_side)
-        for rule in grammar: assert len(rule.right_side) == 1
-        for rule in self.nonterminal_rules:
-            new_left =  PosTerminal(rule.left_side) if rule.left_side in terminals else rule.left_side
-            new_right = map((lambda x: PosTerminal(x) if x in terminals else x), rule.right_side)
-            grammar.add(Rule(new_left, new_right))
-        return Grammar(grammar)
+    def __repr__(self):
+        return "Grammar(" + "\n".join((repr(x) for x in self.rules)) + ")"
         
-
-
-
 
 def irange(start, end):
     """Intuitive range"""
     return range(start, end+1)
 
 def init_chart(grammar, text):
-    ret = defaultdict(lambda: False)
+    ret = defaultdict(set)
     for raw_i, word in enumerate(text):
         index = raw_i + 1 # p is 1-indexed
-        postag = word[1]
+        posterm = PosTerminal(word[1])
         for rule in grammar.unary_rules:
-            if rule.right_side[0] == postag:
-                ret[(index, 1, rule.left_side)] = True
+            if rule.right_side[0] == posterm:
+                tree = Tree(rule.left_side, Tree(rule.right_side[0]))
+                ret[(index, 1, rule.left_side)].add(tree)
     return ret
 
 
 def build_chart(grammar, text):
-    grammar = Grammar(grammar).pospruned
+    grammar = Grammar(grammar)
     ret = init_chart(grammar, text)
     text_len = len(text)
     def apply_binary_rules():
         for rule in grammar.binary_rules:
-            if ret[start, partition, rule.right_side[0]] and ret[start+partition, length-partition, 
-                                                            rule.right_side[1]]:
-                ret[start, length, rule.left_side] = True
+            left_children = ret[start, partition, rule.right_side[0]]
+            right_children= ret[start+partition, length-partition, rule.right_side[1]]
+            for left_child, right_child in zip(left_children, right_children):
+                ret[start, length, rule.left_side].add(Tree(rule.left_side, left_child, right_child))
     def apply_unary_rules():
         for rule in grammar.unary_rules:
-            if ret[start, length, rule.right_side[0]]:
-                ret[start, length, rule.left_side] = True
+            children = ret[start, length, rule.right_side[0]]
+            for child in children:
+                ret[start, length, rule.left_side].add(Tree(rule.left_side, child))
     del text
     length = 1
     for start in irange(1, text_len-length + 1):
@@ -183,18 +200,15 @@ def build_chart(grammar, text):
     return ret
 
 
-def parse(grammar, text):
+def parse(grammar, text, keep_posleafs=False):
     """
-    Return None if the text doesn't match the grammar.
+    Return False if the text doesn't match the grammar.
 
     grammar -- a list of Rule objects
     text -- a list of (word: str, pos: str) tuples
     """
     chart = build_chart(grammar, text)
-    if chart[1, len(text), "S"]:
-        return True
-    else:
-        return None
+    return chart[1, len(text), "S"]
 
 
 def to_cnf(grammar):

@@ -2,8 +2,9 @@
 
 from unittest import TestCase, main, skip
 from parser import *
+from util import empty
 
-
+@skip
 class TreeTest(TestCase):
     def test_multiple_children(self):
         children = [1, 2]
@@ -50,29 +51,29 @@ grammar = {
     Rule("S", ["NP", "VP"]),
     Rule("VP", ["VP", "PP"]),
     Rule("VP", ["V", "NP"]),
-    Rule("VP", ["eats"]),
+    Rule("VP", [PosTerminal("VP")]),
     Rule("PP", ["P", "NP"]),
     Rule("NP", ["Det", "N"]),
-    Rule("NP", ["she"]),
-    Rule("V", ["eats"]),
-    Rule("P", ["with"]),
-    Rule("N", ["fish"]),
-    Rule("N", ["fork"]),
-    Rule("Det", ["a"])
+    Rule("NP", [PosTerminal("NP")]),
+    Rule("V", [PosTerminal("V")]),
+    Rule("P", [PosTerminal("P")]),
+    Rule("N", [PosTerminal("N")]),
+    Rule("N", [PosTerminal("N")]),
+    Rule("Det", [PosTerminal("Det")])
 }
 
 unary_grammar = {
     Rule("S", ["NP", "VP"]),
     Rule("VP", ["V"]),
-    Rule("NP", ["John"]),
-    Rule("V", ["eats"])
+    Rule("NP", [PosTerminal("NP")]),
+    Rule("V", [PosTerminal("V")])
 }
 
 unary_grammar2 = {
     Rule("S", ["S2"]),
-    Rule("NP", ["she"]),
+    Rule("NP", [PosTerminal("NP")]),
     Rule("S2", ["NP", "VP"]),
-    Rule("VP", ["eats"])
+    Rule("VP", [PosTerminal("VP")])
 }
 
 
@@ -81,83 +82,131 @@ class TestParse(TestCase):
     correct_unary_sentence = [("John", "NP"), ("eats", "V")]
     correct_unary_sentence2 = [("she", "NP"), ("eats", "VP")]
     def test_init(self):
-        result = init_chart(Grammar(grammar).pospruned, self.correct_sentence)
-        expected = defaultdict(lambda: False,
-            {
-                (1, 1, PosTerminal("NP")): True,
-                (2, 1, PosTerminal("V")): True,
-                (3, 1, PosTerminal("Det")): True,
-                (4, 1, PosTerminal("N")): True
+        result = init_chart(Grammar(grammar), self.correct_sentence)
+        expected_keys = {
+                (1, 1, "NP"),
+                (2, 1, "V"),
+                (3, 1, "Det"),
+                (4, 1, "N")
             }
-            )
-        self.assertEqual(set(result.items()), set(expected.items()))
+        self.assertEqual(set(result.keys()), expected_keys)
+        for value in result.values():
+            self.assertIsInstance(value, set)
+            for entry in value:
+                self.assertIsInstance(entry, Tree)
 
     def test_true(self):
-        self.assertIsNotNone(parse(grammar, self.correct_sentence))
+        self.assertTrue(parse(grammar, self.correct_sentence))
 
     def test_false(self):
-        self.assertIsNone(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
+        self.assertFalse(parse(grammar, [("she", "NP"), ("fish", "N"), ("eats", "V")]))
 
     def test_unary_true(self):
-        self.assertIsNotNone(parse(unary_grammar, self.correct_unary_sentence))
+        self.assertTrue(parse(unary_grammar, self.correct_unary_sentence))
 
     def test_unary_false(self):
-        self.assertIsNone(parse(unary_grammar, [("eats", "V"), ("John", "NP")]))
+        self.assertFalse(parse(unary_grammar, [("eats", "V"), ("John", "NP")]))
 
     def test_unary_true2(self):
-        self.assertIsNotNone(parse(unary_grammar2, self.correct_unary_sentence2))
+        self.assertTrue(parse(unary_grammar2, self.correct_unary_sentence2))
 
-    def test_tree(self):
+    def test_chart(self):
+        result = build_chart(grammar, self.correct_sentence)
+        for value in result.values():
+            self.assertIsInstance(value, set)
+            for entry in value:
+                self.assertIsInstance(entry, Tree)
+                if not empty(entry.children):
+                    try:
+                        self.assertIsInstance(entry.type_, str)
+                    except AssertionError:
+                        print("\n", entry.children)
+                        raise
+                for child in entry.children:
+                    self.assertIsInstance(child, Tree)
+
+    @skip
+    def test_posprune(self):
+        result = Grammar(grammar).rules
+        for rule in result:
+            self.assertNotIsInstance(rule.left_side, PosTerminal)
+
+    def test_tree_raw(self):
         expected = Tree("S",
-            Tree("NP", Leaf("she")),
+            Tree("NP", Tree(PosTerminal("NP"))),
             Tree("VP",
-                Tree("V", Leaf("eats")),
+                Tree("V", Tree(PosTerminal("V"))),
                 Tree("NP",
-                    Tree("Det", Leaf("a")),
-                    Tree("N", Leaf("fish"))
+                    Tree("Det", Tree(PosTerminal("Det"))),
+                    Tree("N", Tree(PosTerminal("N")))
                 )
             )
         )
-        self.assertEqual(set(parse(grammar, self.correct_sentence)), {expected})
-
+        found = set(parse(grammar, self.correct_sentence, keep_posleafs=True))
+        try:
+            self.assertEqual(found, {expected})
+        except AssertionError:
+            #print(found[0])
+            #print(expected)
+            raise
 
 
 
 class TestGrammar(TestCase):
     def setUp(self):
         self.g = Grammar(grammar)
-        self.gp = self.g.pospruned
+        self.gp = self.g
 
-    
+    @skip
     def test_pospruned(self):
-        self.assertEqual(set(self.g.pospruned.rules),
+        self.assertEqual(set(self.g.rules),
         {
-            Rule("S", (PosTerminal("NP"), PosTerminal("VP"))),
-            Rule(PosTerminal("VP"), (PosTerminal("VP"), "PP")),
-            Rule(PosTerminal("VP"), (PosTerminal("V"), PosTerminal("NP"))),
-            Rule(PosTerminal("VP"), ("VP",)),
-            Rule("PP", (PosTerminal("P"), PosTerminal("NP"))),
-            Rule(PosTerminal("NP"), (PosTerminal("Det"), PosTerminal("N"))),
-            Rule(PosTerminal("NP"), ("NP",)),
-            Rule(PosTerminal("V"), ("V",)),
-            Rule(PosTerminal("P"), ("P",)),
-            Rule(PosTerminal("N"), ("N",)),
-            Rule(PosTerminal("N"), ("N",)),
-            Rule(PosTerminal("Det"), ("Det",))
+            Rule("S", ("NP", "VP")),
+            Rule("VP", ("VP", "PP")),
+            Rule("VP", ("V", "NP")),
+            Rule("VP", (PosTerminal("VP"),)),
+            Rule("PP", ("P", "NP")),
+            Rule("NP", (PosTerminal("NP"),)),
+            Rule("NP", ("Det", "N")),
+            Rule("V", (PosTerminal("V"),)),
+            Rule("P", (PosTerminal("P"),)),
+            Rule("N", (PosTerminal("N"),)),
+            Rule("N", (PosTerminal("N"),)),
+            Rule("Det", (PosTerminal("Det"),))
         })
 
 class TestGrammarUnary(TestCase):
     def setUp(self):
         self.g = Grammar(unary_grammar)
-        self.gp = self.g.pospruned
 
-    def test_pospruned(self):
-        self.assertEqual(set(self.g.pospruned.rules),
+    def test_unary(self):
+        self.assertEqual(set(self.g.unary_rules),
+            {
+                Rule("VP", ["V"]),
+                Rule("NP", [PosTerminal("NP")]),
+                Rule("V", [PosTerminal("V")])
+            })
+
+    def test_binary(self):
+        self.assertEqual(set(self.g.binary_rules),
+        {Rule("S", ("NP", "VP"))})
+
+    def test_nonterminal_symbols(self):
+        self.assertEqual(set(self.g.nonterminal_symbols),
+        {"NP", "VP", "V", "S"})
+
+    def test_terminal_rules(self):
+        self.assertEqual(set(self.g.terminal_rules),
         {
-            Rule("S", (PosTerminal("NP"), "VP")),
-            Rule("VP", (PosTerminal("V"),)),
-            Rule(PosTerminal("NP"), ("NP",)),
-            Rule(PosTerminal("V"), ("V",))
+            Rule("NP", [PosTerminal("NP")]),
+            Rule("V", [PosTerminal("V")])
+        })
+
+    def test_nonterminal_rules(self):
+        self.assertEqual(set(self.g.nonterminal_rules),
+        {
+            Rule("S", ["NP", "VP"]),
+            Rule("VP", ["V"])
         })
 
 
