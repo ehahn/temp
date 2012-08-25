@@ -2,11 +2,10 @@ from collections import deque
 
 from util import empty
 
-class Tree:
+class AbstractTree:
     def __init__(self, type_, *children):
-        self.children = children
         for child in children:
-            if not isinstance(child, Tree):
+            if not isinstance(child, AbstractTree):
                 print()
                 print("type", type_)
                 print("child", child)
@@ -19,18 +18,12 @@ class Tree:
 
     def __eq__(self, other):
         ret = self.children == other.children and self.type_ == other.type_
-        if not ret:
-            print("children", self.children == other.children)
-            print("type", self.type_ == other.type_)
         return ret
-
-    def __hash__(self):
-        return hash(self.children) * 7 + hash(self.type_) * 13
 
     def __str__(self, indent=0):
         ret = " " * indent + "(" + str(self.type_) 
         for child in self.children:
-            assert isinstance(child, Tree)
+            assert isinstance(child, AbstractTree)
             ret += child.__str__(indent + 1)
         ret += " " * indent + ")"
         ret += "\n"
@@ -47,6 +40,28 @@ class Tree:
                 yield cur
             else:
                 agenda.extend(reversed(cur.children))
+
+
+class Tree(AbstractTree):
+    def __init__(self, type_, *children):
+        super().__init__(type_, *children)
+        self.children = list(children)
+
+    def hashable(self):
+        return HashableTree(self.type_, *[child.hashable() for child in self.children])
+
+
+class HashableTree(AbstractTree):
+    def __init__(self, type_, *children):
+        super().__init__(type_, *children)
+        self.children = children
+
+    def __hash__(self):
+        return hash(self.children) * 7 + hash(self.type_) * 13
+
+    def hashable(self):
+        return self
+
 
 
 

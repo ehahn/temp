@@ -2,13 +2,14 @@
 
 from unittest import TestCase, main, skip, expectedFailure
 from parser import *
+from common import Tree, AbstractTree
 from util import empty
 
 @skip
 class TreeTest(TestCase):
     def test_multiple_children(self):
         children = [1, 2]
-        tree = Tree(None, *children)
+        tree = HashableTree(None, *children)
         self.assertEqual(tree.children, tuple(children))
 
 #class TestCNF(TestCase):
@@ -19,24 +20,24 @@ class TreeTest(TestCase):
 #        expected = 
 #        self.assertEquals(
 
-WORDTREE = Tree("S",
-            Tree("NP", Tree("she")),
-            Tree("VP",
-                Tree("V", Tree("eats")),
-                Tree("NP",
-                    Tree("Det", Tree("a")),
-                    Tree("N", Tree("fish"))
+WORDTREE = HashableTree("S",
+            HashableTree("NP", HashableTree("she")),
+            HashableTree("VP",
+                HashableTree("V", HashableTree("eats")),
+                HashableTree("NP",
+                    HashableTree("Det", HashableTree("a")),
+                    HashableTree("N", HashableTree("fish"))
                 )
             )
         )
 
-POSTREE = Tree("S",
-            Tree("NP", Tree(PosTerminal("NP"))),
-            Tree("VP",
-                Tree("V", Tree(PosTerminal("V"))),
-                Tree("NP",
-                    Tree("Det", Tree(PosTerminal("Det"))),
-                    Tree("N", Tree(PosTerminal("N")))
+POSTREE = HashableTree("S",
+            HashableTree("NP", HashableTree(PosTerminal("NP"))),
+            HashableTree("VP",
+                HashableTree("V", HashableTree(PosTerminal("V"))),
+                HashableTree("NP",
+                    HashableTree("Det", HashableTree(PosTerminal("Det"))),
+                    HashableTree("N", HashableTree(PosTerminal("N")))
                 )
             )
         )
@@ -113,7 +114,7 @@ class TestParse(TestCase):
         for value in result.values():
             self.assertIsInstance(value, set)
             for entry in value:
-                self.assertIsInstance(entry, Tree)
+                self.assertIsInstance(entry, AbstractTree)
 
     def test_true(self):
         self.assertTrue(parse(grammar, self.correct_sentence))
@@ -135,7 +136,7 @@ class TestParse(TestCase):
         for value in result.values():
             self.assertIsInstance(value, set)
             for entry in value:
-                self.assertIsInstance(entry, Tree)
+                self.assertIsInstance(entry, AbstractTree)
                 if not empty(entry.children):
                     try:
                         self.assertIsInstance(entry.type_, str)
@@ -143,7 +144,7 @@ class TestParse(TestCase):
                         print("\n", entry.children)
                         raise
                 for child in entry.children:
-                    self.assertIsInstance(child, Tree)
+                    self.assertIsInstance(child, AbstractTree)
 
     @skip
     def test_posprune(self):
@@ -222,15 +223,15 @@ class TestGrammarUnary(TestCase):
             Rule("VP", ["V"])
         })
 
-class TestTree(TestCase):
+class TestHashableTree(TestCase):
     def test_preterminals(self):
         tree = POSTREE
         result = list(tree.preterminals())
         expected = [
-            Tree("NP", Tree(PosTerminal("NP"))),
-            Tree("V", Tree(PosTerminal("V"))),
-            Tree("Det", Tree(PosTerminal("Det"))),
-            Tree("N", Tree(PosTerminal("N")))
+            HashableTree("NP", HashableTree(PosTerminal("NP"))),
+            HashableTree("V", HashableTree(PosTerminal("V"))),
+            HashableTree("Det", HashableTree(PosTerminal("Det"))),
+            HashableTree("N", HashableTree(PosTerminal("N")))
         ]
         self.assertEqual(result, expected)
 

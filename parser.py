@@ -3,7 +3,7 @@
 from collections import defaultdict
 from copy import copy
 from util import irange
-from common import Tree, Rule, SplitTag, PosTerminal
+from common import HashableTree, Rule, SplitTag, PosTerminal, HashableTree
 
 
 class Grammar:
@@ -51,7 +51,7 @@ def init_chart(grammar, text):
         posterm = PosTerminal(word[1])
         for rule in grammar.unary_rules:
             if rule.right_side[0] == posterm:
-                tree = Tree(rule.left_side, Tree(rule.right_side[0]))
+                tree = HashableTree(rule.left_side, HashableTree(rule.right_side[0]))
                 ret[(index, 1, rule.left_side)].add(tree)
     return ret
 
@@ -65,12 +65,12 @@ def build_chart(grammar, text):
             left_children = ret[start, partition, rule.right_side[0]]
             right_children= ret[start+partition, length-partition, rule.right_side[1]]
             for left_child, right_child in zip(left_children, right_children):
-                ret[start, length, rule.left_side].add(Tree(rule.left_side, left_child, right_child))
+                ret[start, length, rule.left_side].add(HashableTree(rule.left_side, left_child, right_child))
     def apply_unary_rules():
         for rule in grammar.unary_rules:
             children = ret[start, length, rule.right_side[0]]
             for child in children:
-                ret[start, length, rule.left_side].add(Tree(rule.left_side, child))
+                ret[start, length, rule.left_side].add(HashableTree(rule.left_side, child))
     del text
     length = 1
     for start in irange(1, text_len-length + 1):
