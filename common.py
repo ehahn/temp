@@ -30,7 +30,11 @@ class AbstractTree:
         return ret
 
     def __repr__(self):
-        return str(self)
+        ret = "AbstractTree" + "("
+        ret += "type=" + str(self.type_) + ","
+        ret += "children=[" + ",".join((str(x) for x in self.children))+"]"
+        ret += ")"
+        return ret
 
     def preterminals(self):
         agenda = deque([self])
