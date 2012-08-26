@@ -45,6 +45,38 @@ class ParseTreebankTest(TestCase):
         expected = {Tree("A", Tree(PosTerminal("A"))).hashable()}
         self.assertEqual(treeset(parse_treebank(string)), expected)
 
+    def test_real(self):
+        def tree(symbol, *children):
+            ret = Tree(symbol)
+            for child in children:
+                if isinstance(child, Tree):
+                    ret.children.append(child)
+                else:
+                    assert isinstance(child, str)
+                    ret.children.append(Tree(PosTerminal(child)))
+            return ret
+
+        expected = {
+tree("S",
+    tree("PP-TMP", tree("IN", "For"),
+      tree("NP", tree("CD", "six"), tree("NNS", "years") )),
+    tree(",", ","),
+    tree("NP-SBJ", tree("NNP", "T."), tree("NNP", "Marshall"), tree("NNP", "Hahn"), tree("NNP", "Jr.") ),
+    tree("VP", tree("VBZ", "has"),
+      tree("VP", tree("VBN", "made"),
+        tree("NP", tree("JJ", "corporate"), tree("NNS", "acquisitions") ),
+        tree("PP-MNR", tree("IN", "in"),
+          tree("NP",
+            tree("NP", tree("DT", "the"), tree("NNP", "George"), tree("NNP", "Bush"), tree("NN", "mode") ),
+            tree(":", ":"),
+            tree("ADJP", tree("JJ", "kind"),
+              tree("CC", "and"),
+              tree("JJ", "gentle") ))))),
+    tree(".", ".") ).hashable()
+}
+        self.assertEqual(treeset(parse_treebank(TESTDATA_SIMPLE)), expected)
+
+
 
 
 if __name__ == '__main__':
