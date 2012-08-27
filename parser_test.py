@@ -4,6 +4,7 @@ from unittest import TestCase, main, skip, expectedFailure
 from parser import *
 from common import Tree, AbstractTree, Rule
 from util import empty
+from testutil import POSTREE, grammar, unary_grammar, unary_grammar2
 
 @skip
 class TreeTest(TestCase):
@@ -31,71 +32,7 @@ WORDTREE = HashableTree("S",
             )
         )
 
-POSTREE = HashableTree("S",
-            HashableTree("NP", HashableTree(PosTerminal("NP"))),
-            HashableTree("VP",
-                HashableTree("V", HashableTree(PosTerminal("V"))),
-                HashableTree("NP",
-                    HashableTree("Det", HashableTree(PosTerminal("Det"))),
-                    HashableTree("N", HashableTree(PosTerminal("N")))
-                )
-            )
-        )
 
-class TestRule(TestCase):
-    def test_split_simple(self):
-        rule = Rule("a", ["b", "c"])
-        self.assertEqual({rule}, set(rule.split()))
-
-    def test_split(self):
-        rule = Rule("a", ["b", "c", "d"])
-        self.assertEqual(
-            {
-            Rule("a", ["b", SplitTag(["c", "d"])]),
-            Rule(SplitTag(["c", "d"]), ["c", "d"])
-            },
-            set(rule.split())
-        )
-
-    def test_eq(self):
-        rule1 = Rule("a", ["b", "c"])
-        rule2 = Rule("b", ["b", "c"])
-        self.assertNotEqual(rule1, rule2)
-        rule3 = Rule("a", ["b", "c"])
-        self.assertEqual(rule1, rule3)
-
-    def test_str(self):
-        rule = Rule("a", ["apfel"])
-        self.assertEqual(rule.right_side[0], "apfel")
-
-grammar = {
-    Rule("S", ["NP", "VP"]),
-    Rule("VP", ["VP", "PP"]),
-    Rule("VP", ["V", "NP"]),
-    Rule("VP", [PosTerminal("VP")]),
-    Rule("PP", ["P", "NP"]),
-    Rule("NP", ["Det", "N"]),
-    Rule("NP", [PosTerminal("NP")]),
-    Rule("V", [PosTerminal("V")]),
-    Rule("P", [PosTerminal("P")]),
-    Rule("N", [PosTerminal("N")]),
-    Rule("N", [PosTerminal("N")]),
-    Rule("Det", [PosTerminal("Det")])
-}
-
-unary_grammar = {
-    Rule("S", ["NP", "VP"]),
-    Rule("VP", ["V"]),
-    Rule("NP", [PosTerminal("NP")]),
-    Rule("V", [PosTerminal("V")])
-}
-
-unary_grammar2 = {
-    Rule("S", ["S2"]),
-    Rule("NP", [PosTerminal("NP")]),
-    Rule("S2", ["NP", "VP"]),
-    Rule("VP", [PosTerminal("VP")])
-}
 
 
 class TestParse(TestCase):
@@ -164,76 +101,6 @@ class TestParse(TestCase):
         self.assertEqual(len(found), 1)
         # This doesn't work as expected
         #self.assertEqual(found, {expected})
-
-
-class TestGrammar(TestCase):
-    def setUp(self):
-        self.g = Grammar(grammar)
-        self.gp = self.g
-
-    @skip
-    def test_pospruned(self):
-        self.assertEqual(set(self.g.rules),
-        {
-            Rule("S", ("NP", "VP")),
-            Rule("VP", ("VP", "PP")),
-            Rule("VP", ("V", "NP")),
-            Rule("VP", (PosTerminal("VP"),)),
-            Rule("PP", ("P", "NP")),
-            Rule("NP", (PosTerminal("NP"),)),
-            Rule("NP", ("Det", "N")),
-            Rule("V", (PosTerminal("V"),)),
-            Rule("P", (PosTerminal("P"),)),
-            Rule("N", (PosTerminal("N"),)),
-            Rule("N", (PosTerminal("N"),)),
-            Rule("Det", (PosTerminal("Det"),))
-        })
-
-class TestGrammarUnary(TestCase):
-    def setUp(self):
-        self.g = Grammar(unary_grammar)
-
-    def test_unary(self):
-        self.assertEqual(set(self.g.unary_rules),
-            {
-                Rule("VP", ["V"]),
-                Rule("NP", [PosTerminal("NP")]),
-                Rule("V", [PosTerminal("V")])
-            })
-
-    def test_binary(self):
-        self.assertEqual(set(self.g.binary_rules),
-        {Rule("S", ("NP", "VP"))})
-
-    def test_nonterminal_symbols(self):
-        self.assertEqual(set(self.g.nonterminal_symbols),
-        {"NP", "VP", "V", "S"})
-
-    def test_terminal_rules(self):
-        self.assertEqual(set(self.g.terminal_rules),
-        {
-            Rule("NP", [PosTerminal("NP")]),
-            Rule("V", [PosTerminal("V")])
-        })
-
-    def test_nonterminal_rules(self):
-        self.assertEqual(set(self.g.nonterminal_rules),
-        {
-            Rule("S", ["NP", "VP"]),
-            Rule("VP", ["V"])
-        })
-
-class TestHashableTree(TestCase):
-    def test_preterminals(self):
-        tree = POSTREE
-        result = list(tree.preterminals())
-        expected = [
-            HashableTree("NP", HashableTree(PosTerminal("NP"))),
-            HashableTree("V", HashableTree(PosTerminal("V"))),
-            HashableTree("Det", HashableTree(PosTerminal("Det"))),
-            HashableTree("N", HashableTree(PosTerminal("N")))
-        ]
-        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':
