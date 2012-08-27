@@ -45,6 +45,7 @@ class AbstractTree:
             else:
                 agenda.extend(reversed(cur.children))
 
+
     @property
     def is_terminal(self):
         return isinstance(self.type_, Terminal)
@@ -56,6 +57,14 @@ class AbstractTree:
             for i, child in enumerate(cur.children[:]):
                 if empty(child.children) and not child.is_terminal:
                     del cur.children[i]
+
+    @property
+    def subtrees(self):
+        agenda = deque([self])
+        while not empty(agenda):
+            cur = agenda.pop()
+            yield cur
+            agenda.extend(cur.children)
 
 
 class Tree(AbstractTree):
@@ -169,10 +178,12 @@ class PosTerminal(Terminal):
     def __repr__(self):
         return "PosTerminal(" + self._postag + ")"
 
-
 class Grammar:
     def __init__(self, grammar):
         self.rules = frozenset(grammar)
+
+    def __iter__(self):
+        return iter(self.rules)
 
     def _nnary_rules(self, n):
         for rule in self.rules:
@@ -206,3 +217,8 @@ class Grammar:
 
     def __repr__(self):
         return "Grammar(" + "\n".join((repr(x) for x in self.rules)) + ")"
+
+    def __eq__(self, other):
+        return self.rules == other.rules
+
+

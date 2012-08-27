@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from unittest import TestCase, main
-from common import Tree, PosTerminal
+from common import Tree, PosTerminal, Rule
+from testutil import tree
 
 from training import *
 
@@ -23,17 +24,6 @@ TESTDATA_SIMPLE =  \
               (JJ gentle) )))))
     (. .) ))
 """
-
-def tree(symbol, *children):
-    ret = Tree(symbol)
-    for child in children:
-        if isinstance(child, Tree):
-            ret.children.append(child)
-        else:
-            assert isinstance(child, str)
-            ret.children.append(Tree(PosTerminal(child)))
-    return ret
-
 
 TESTDATA_EXPECTED = {
 tree("S",
@@ -105,6 +95,17 @@ class ParseTreebankTest(TestCase):
         self.assertEqual(next(it), list(TESTDATA_EXPECTED)[0])
         with self.assertRaises(StopIteration):
             next(it)
+
+class ExtractGrammarTest(TestCase):
+    def test_simple(self):
+        data = tree("S", tree("A", "b"), tree("B", "c"))
+        self.assertEqual(set(extract_grammar(data)),
+            {
+                Rule("S", ["A", "B"]),
+                Rule("A", [PosTerminal("b")]),
+                Rule("B", [PosTerminal("c")])
+            }
+            )
 
 
 

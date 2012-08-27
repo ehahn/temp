@@ -1,5 +1,5 @@
-from collections import deque
-from common import Tree, PosTerminal
+from collections import deque, defaultdict, Counter
+from common import Tree, PosTerminal, Grammar, Rule
 from util import empty
 import util
 import re
@@ -52,3 +52,24 @@ def parse_treebank(data):
                     cur.type_ = symbol
                 else:
                     cur.children.append(Tree(PosTerminal(cur.type_)))
+
+def count_rules(tree):
+    ret = defaultdict(Counter)
+    for subtree in tree.subtrees:
+        right_symbols = tuple(child.type_ for child in subtree.children)
+        if not empty(right_symbols):
+            left_symbol = subtree.type_
+            ret[left_symbol][tuple(child.type_ for child in subtree.children)] += 1
+        else:
+            # left_symbol is a terminal
+            pass
+    return ret
+
+
+def extract_grammar(tree):
+    rules = set()
+    for left_symbol, right_dict in count_rules(tree).items():
+        total = sum(count for right_symbols, count in right_dict.items())
+        for right_symbols, count in right_dict.items():
+            rules.add(Rule(left_symbol, right_symbols, count / total))
+    return Grammar(rules)
