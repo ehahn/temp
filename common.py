@@ -17,7 +17,7 @@ class AbstractTree:
         self.probability = Probability(prob)
 
     def __eq__(self, other):
-        ret = self.children == other.children and self.type_ == other.type_
+        ret = list(self.children) == list(other.children) and self.type_ == other.type_
         return ret
 
     def __str__(self, indent=0):
