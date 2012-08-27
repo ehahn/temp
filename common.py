@@ -1,5 +1,4 @@
 from collections import deque
-
 from util import empty
 
 class AbstractTree:

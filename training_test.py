@@ -24,9 +24,6 @@ TESTDATA_SIMPLE =  \
     (. .) ))
 """
 
-def treeset(trees):
-    return set((tree.hashable() for tree in trees))
-
 def tree(symbol, *children):
     ret = Tree(symbol)
     for child in children:
@@ -36,6 +33,29 @@ def tree(symbol, *children):
             assert isinstance(child, str)
             ret.children.append(Tree(PosTerminal(child)))
     return ret
+
+
+TESTDATA_EXPECTED = {
+tree("S",
+    tree("PPTMP", tree("IN", "IN"),
+      tree("NP", tree("CD", "CD"), tree("NNS", "NNS") )),
+    tree(",", ","),
+    tree("NPSBJ", tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP") ),
+    tree("VP", tree("VBZ", "VBZ"),
+      tree("VP", tree("VBN", "VBN"),
+        tree("NP", tree("JJ", "JJ"), tree("NNS", "NNS") ),
+        tree("PPMNR", tree("IN", "IN"),
+          tree("NP",
+            tree("NP", tree("DT", "DT"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NN", "NN") ),
+            tree(":", ":"),
+            tree("ADJP", tree("JJ", "JJ"),
+              tree("CC", "CC"),
+              tree("JJ", "JJ") ))))),
+    tree(".", ".") ).hashable()
+}
+
+def treeset(trees):
+    return set((tree.hashable() for tree in trees))
 
 
 class TokenizeTest(TestCase):
@@ -57,25 +77,7 @@ class ParseTreebankTest(TestCase):
         self.assertEqual(treeset(parse_treebank(string)), expected)
 
     def test_real(self):
-        expected = {
-tree("S",
-    tree("PPTMP", tree("IN", "IN"),
-      tree("NP", tree("CD", "CD"), tree("NNS", "NNS") )),
-    tree(",", ","),
-    tree("NPSBJ", tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP") ),
-    tree("VP", tree("VBZ", "VBZ"),
-      tree("VP", tree("VBN", "VBN"),
-        tree("NP", tree("JJ", "JJ"), tree("NNS", "NNS") ),
-        tree("PPMNR", tree("IN", "IN"),
-          tree("NP",
-            tree("NP", tree("DT", "DT"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NN", "NN") ),
-            tree(":", ":"),
-            tree("ADJP", tree("JJ", "JJ"),
-              tree("CC", "CC"),
-              tree("JJ", "JJ") ))))),
-    tree(".", ".") ).hashable()
-}
-        self.assertEqual(treeset(parse_treebank(TESTDATA_SIMPLE)), expected)
+        self.assertEqual(treeset(parse_treebank(TESTDATA_SIMPLE)), TESTDATA_EXPECTED)
 
     def test_tags(self):
         expected = {
@@ -95,6 +97,14 @@ tree("S",
         }
         data = "(S (FOO foo) (-NONE- *))"
         self.assertEqual(treeset(parse_treebank(data)), expected)
+
+    def test_multiple(self):
+        data = "(S (FOO foo)) " + TESTDATA_SIMPLE
+        it = iter(parse_treebank(data))
+        self.assertEqual(next(it), tree("S", tree("FOO", "FOO")))
+        self.assertEqual(next(it), list(TESTDATA_EXPECTED)[0])
+        with self.assertRaises(StopIteration):
+            next(it)
 
 
 
