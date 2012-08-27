@@ -87,6 +87,15 @@ tree("S",
         data = "(S-FOO(PP-BAR bla) (N-BLUBB blubb))"
         self.assertEqual(treeset(parse_treebank(data)), expected)
 
+    def test_ignore_none(self):
+        expected = {
+            tree("S",
+                tree("FOO", "FOO"),
+            ).hashable()
+        }
+        data = "(S (FOO foo) (-NONE- *))"
+        self.assertEqual(treeset(parse_treebank(data)), expected)
+
 
 
 

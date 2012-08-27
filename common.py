@@ -46,6 +46,18 @@ class AbstractTree:
             else:
                 agenda.extend(reversed(cur.children))
 
+    @property
+    def is_terminal(self):
+        return isinstance(self.type_, Terminal)
+
+    def prune_empty(self):
+        agenda = deque([self])
+        while not empty(agenda):
+            cur = agenda.pop()
+            for i, child in enumerate(cur.children[:]):
+                if empty(child.children) and not child.is_terminal:
+                    del cur.children[i]
+
 
 class Tree(AbstractTree):
     def __init__(self, type_, *children):
@@ -133,7 +145,16 @@ class Probability:
     def __repr__(self):
         return "Probability(" + repr(self._prob) + ")"
 
-class PosTerminal:
+
+class Terminal:
+    """
+    If the type_ of an AbstractTree is of this type, said tree is considered a
+    leaf. This is relevant for AbstractTree.prune_empty
+    """
+    pass
+
+
+class PosTerminal(Terminal):
     def __init__(self, postag):
         self._postag = postag
 

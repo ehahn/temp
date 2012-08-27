@@ -40,11 +40,15 @@ def parse_treebank(data):
         elif token == ")":
             ret = stack.pop()
             if empty(stack):
+                ret.prune_empty()
                 yield ret
         else:
             cur = stack[-1]
-            symbol = remove_additional_tag(token)
-            if cur.type_ is None:
-                cur.type_ = symbol
-            else:
-                cur.children.append(Tree(PosTerminal(cur.type_)))
+            # "empty" nodes should not be added. prune_empty() will take care
+            # of the parent nodes.
+            if token != "-NONE-":
+                symbol = remove_additional_tag(token)
+                if cur.type_ is None:
+                    cur.type_ = symbol
+                else:
+                    cur.children.append(Tree(PosTerminal(cur.type_)))
