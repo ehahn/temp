@@ -2,7 +2,7 @@
 
 from unittest import TestCase, main, skip, expectedFailure
 from parser import *
-from common import Tree, AbstractTree
+from common import Tree, AbstractTree, Rule
 from util import empty
 
 @skip

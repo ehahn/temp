@@ -16,7 +16,7 @@ class AbstractTree:
         self.probability = Probability(prob)
 
     def __eq__(self, other):
-        ret = list(self.children) == list(other.children) and self.type_ == other.type_
+        ret = tuple(self.children) == tuple(other.children) and self.type_ == other.type_
         return ret
 
     def __str__(self, indent=0):
@@ -168,3 +168,41 @@ class PosTerminal(Terminal):
         
     def __repr__(self):
         return "PosTerminal(" + self._postag + ")"
+
+
+class Grammar:
+    def __init__(self, grammar):
+        self.rules = frozenset(grammar)
+
+    def _nnary_rules(self, n):
+        for rule in self.rules:
+            if len(rule.right_side) == n:
+                yield rule
+
+    @property
+    def unary_rules(self):
+        return self._nnary_rules(1)
+
+    @property
+    def binary_rules(self):
+        return self._nnary_rules(2)
+
+    @property
+    def nonterminal_symbols(self):
+        for rule in self.rules:
+            yield rule.left_side
+
+    @property
+    def terminal_rules(self):
+        for rule in self.unary_rules:
+            if rule.right_side[0] not in self.nonterminal_symbols:
+                yield rule
+
+    @property
+    def nonterminal_rules(self):
+        for rule in self.rules:
+            if rule not in self.terminal_rules:
+                yield rule
+
+    def __repr__(self):
+        return "Grammar(" + "\n".join((repr(x) for x in self.rules)) + ")"
