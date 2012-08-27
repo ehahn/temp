@@ -7,14 +7,14 @@ from training import *
 
 TESTDATA_SIMPLE =  \
 """ ( (S
-    (PP-TMP (IN For)
+    (PPTMP (IN For)
       (NP (CD six) (NNS years) ))
     (, ,)
-    (NP-SBJ (NNP T.) (NNP Marshall) (NNP Hahn) (NNP Jr.) )
+    (NPSBJ (NNP T.) (NNP Marshall) (NNP Hahn) (NNP Jr.) )
     (VP (VBZ has)
       (VP (VBN made)
         (NP (JJ corporate) (NNS acquisitions) )
-        (PP-MNR (IN in)
+        (PPMNR (IN in)
           (NP
             (NP (DT the) (NNP George) (NNP Bush) (NN mode) )
             (: :)
@@ -26,6 +26,17 @@ TESTDATA_SIMPLE =  \
 
 def treeset(trees):
     return set((tree.hashable() for tree in trees))
+
+def tree(symbol, *children):
+    ret = Tree(symbol)
+    for child in children:
+        if isinstance(child, Tree):
+            ret.children.append(child)
+        else:
+            assert isinstance(child, str)
+            ret.children.append(Tree(PosTerminal(child)))
+    return ret
+
 
 class TokenizeTest(TestCase):
     def test_nonletters(self):
@@ -46,35 +57,35 @@ class ParseTreebankTest(TestCase):
         self.assertEqual(treeset(parse_treebank(string)), expected)
 
     def test_real(self):
-        def tree(symbol, *children):
-            ret = Tree(symbol)
-            for child in children:
-                if isinstance(child, Tree):
-                    ret.children.append(child)
-                else:
-                    assert isinstance(child, str)
-                    ret.children.append(Tree(PosTerminal(child)))
-            return ret
-
         expected = {
 tree("S",
-    tree("PP-TMP", tree("IN", "For"),
-      tree("NP", tree("CD", "six"), tree("NNS", "years") )),
+    tree("PPTMP", tree("IN", "IN"),
+      tree("NP", tree("CD", "CD"), tree("NNS", "NNS") )),
     tree(",", ","),
-    tree("NP-SBJ", tree("NNP", "T."), tree("NNP", "Marshall"), tree("NNP", "Hahn"), tree("NNP", "Jr.") ),
-    tree("VP", tree("VBZ", "has"),
-      tree("VP", tree("VBN", "made"),
-        tree("NP", tree("JJ", "corporate"), tree("NNS", "acquisitions") ),
-        tree("PP-MNR", tree("IN", "in"),
+    tree("NPSBJ", tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NNP", "NNP") ),
+    tree("VP", tree("VBZ", "VBZ"),
+      tree("VP", tree("VBN", "VBN"),
+        tree("NP", tree("JJ", "JJ"), tree("NNS", "NNS") ),
+        tree("PPMNR", tree("IN", "IN"),
           tree("NP",
-            tree("NP", tree("DT", "the"), tree("NNP", "George"), tree("NNP", "Bush"), tree("NN", "mode") ),
+            tree("NP", tree("DT", "DT"), tree("NNP", "NNP"), tree("NNP", "NNP"), tree("NN", "NN") ),
             tree(":", ":"),
-            tree("ADJP", tree("JJ", "kind"),
-              tree("CC", "and"),
-              tree("JJ", "gentle") ))))),
+            tree("ADJP", tree("JJ", "JJ"),
+              tree("CC", "CC"),
+              tree("JJ", "JJ") ))))),
     tree(".", ".") ).hashable()
 }
         self.assertEqual(treeset(parse_treebank(TESTDATA_SIMPLE)), expected)
+
+    def test_tags(self):
+        expected = {
+            tree("S",
+                tree("PP", "PP"),
+                tree("N", "N")
+            ).hashable()
+        }
+        data = "(S-FOO(PP-BAR bla) (N-BLUBB blubb))"
+        self.assertEqual(treeset(parse_treebank(data)), expected)
 
 
 

@@ -29,11 +29,12 @@ class AbstractTree:
         ret += "\n"
         return ret
 
-    def __repr__(self):
-        ret = "AbstractTree" + "("
-        ret += "type=" + str(self.type_) + ","
-        ret += "children=[" + ",".join((str(x) for x in self.children))+"]"
-        ret += ")"
+    def __repr__(self, indent=0):
+        ret = " " * indent + "(" + repr(self.type_) 
+        for child in self.children:
+            ret += child.__repr__(indent + 1)
+        ret += " " * indent + ")"
+        ret += "\n"
         return ret
 
     def preterminals(self):
