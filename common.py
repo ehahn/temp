@@ -1,13 +1,14 @@
 from collections import deque
 from util import empty
+import log
 
 class AbstractTree:
     def __init__(self, type_, *children):
         for child in children:
             if not isinstance(child, AbstractTree):
-                print()
-                print("type", type_)
-                print("child", child)
+                
+                
+                
                 raise AssertionError
         self.type_ = type_
         self.probability = Probability(1)
@@ -109,13 +110,16 @@ class Rule:
 
     def split(self):
         if len(self.right_side) <= 2:
+            
             yield self
         else:
             split_tag = SplitTag(self.right_side[1:])
+            
             yield Rule(self.left_side, [self.right_side[0], split_tag])
             next_rule = Rule(split_tag, self.right_side[1:])
             for rule in next_rule.split():
                 assert len(rule.right_side) == 2
+                
                 yield rule
 
     def __eq__(self, other):
@@ -220,5 +224,13 @@ class Grammar:
 
     def __eq__(self, other):
         return self.rules == other.rules
+
+    def _binarized_rules(self):
+        for rule in self.rules:
+            for split_rule in rule.split():
+                yield split_rule
+
+    def binarized(self):
+        return Grammar(self._binarized_rules())
 
 

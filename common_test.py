@@ -58,7 +58,6 @@ class TestGrammar(TestCase):
         self.g = Grammar(grammar)
         self.gp = self.g
 
-    @skip
     def test_pospruned(self):
         self.assertEqual(set(self.g.rules),
         {
@@ -75,6 +74,16 @@ class TestGrammar(TestCase):
             Rule("N", (PosTerminal("N"),)),
             Rule("Det", (PosTerminal("Det"),))
         })
+
+    def test_binarize(self):
+        g = Grammar({
+            Rule("A", ("B", "C", "D")),
+            Rule("B", ("x", "y"))})
+        expected = Grammar({
+            Rule("A", ("B", SplitTag(["C", "D"]))),
+            Rule(SplitTag(["C", "D"]), ("C", "D")),
+            Rule("B", ("x", "y"))})
+        self.assertEqual(g.binarized(), expected)
 
 class TestGrammarUnary(TestCase):
     def setUp(self):
