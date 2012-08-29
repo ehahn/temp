@@ -6,10 +6,7 @@ class AbstractTree:
     def __init__(self, type_, *children):
         for child in children:
             if not isinstance(child, AbstractTree):
-                
-                
-                
-                raise AssertionError
+                raise RuntimeError("{} is not an instance of AbstractTree".format(child))
         self.type_ = type_
         self.probability = Probability(1)
 
@@ -30,7 +27,7 @@ class AbstractTree:
         return ret
 
     def __repr__(self, indent=0):
-        ret = " " * indent + "(" + repr(self.type_) 
+        ret = " " * indent + "AbstractTree(" + repr(self.type_) + ","
         for child in self.children:
             ret += child.__repr__(indent + 1)
         ret += " " * indent + ")"
@@ -46,10 +43,13 @@ class AbstractTree:
             else:
                 agenda.extend(reversed(cur.children))
 
-
     @property
     def is_terminal(self):
         return isinstance(self.type_, Terminal)
+
+    @property
+    def is_binarized(self):
+        return isinstance(self.type_, SplitTag)
 
     def prune_empty(self):
         agenda = deque([self])
@@ -67,6 +67,23 @@ class AbstractTree:
             yield cur
             agenda.extend(cur.children)
 
+    @log.log
+    def debinarized_children(self):
+        if self.is_terminal:
+            yield self
+        else:
+            assert len(self.children) <= 2
+            for child in self.children:
+                for from_ in child.debinarized_children():
+                    yield from_
+
+
+    @log.log
+    def debinarized(self):
+        if isinstance(self.type_, SplitTag):
+            raise RuntimeError("Cannot debinarized a tree whose symbol is a SplitTag")
+        return Tree(self.type_, *self.debinarized_children())
+
 
 class Tree(AbstractTree):
     def __init__(self, type_, *children):
@@ -80,7 +97,7 @@ class Tree(AbstractTree):
 class HashableTree(AbstractTree):
     def __init__(self, type_, *children):
         super().__init__(type_, *children)
-        self.children = children
+        self.children = tuple(children)
 
     def __hash__(self):
         return hash(self.children) * 7 + hash(self.type_) * 13

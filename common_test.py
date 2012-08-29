@@ -3,7 +3,8 @@
 from unittest import TestCase, main, skip
 from common import *
 from util import empty
-from testutil import POSTREE, unary_grammar, grammar, unary_grammar2
+from testutil import POSTREE, unary_grammar, grammar, unary_grammar2, tree
+import log
 
 class TestHashableTree(TestCase):
     def test_hashable_children(self):
@@ -21,6 +22,7 @@ class TestRule(TestCase):
 
     def test_split(self):
         rule = Rule("a", ["b", "c", "d"])
+        #print(set(rule.split()))
         self.assertEqual(
             {
             Rule("a", ["b", SplitTag(["c", "d"])]),
@@ -52,6 +54,21 @@ class TestHashableTree(TestCase):
             HashableTree("N", HashableTree(PosTerminal("N")))
         ]
         self.assertEqual(result, expected)
+
+class TestTree(TestCase):
+    def test_debinarized(self):
+        data = Tree("A", 
+            Tree(PosTerminal("B")),
+            Tree(SplitTag(["C", "D", "E"]),
+                Tree(PosTerminal("C")),
+                Tree(SplitTag(["D", "E"]),
+                    Tree(PosTerminal("D")),
+                    Tree(PosTerminal("E"))
+                )
+            )
+        )
+        expected = tree("A", "B", "C", "D", "E")
+        self.assertEqual(data.debinarized(), expected)
 
 class TestGrammar(TestCase):
     def setUp(self):
