@@ -81,7 +81,7 @@ class AbstractTree:
     @log.log
     def debinarized(self):
         if isinstance(self.type_, SplitTag):
-            raise RuntimeError("Cannot debinarized a tree whose symbol is a SplitTag")
+            raise RuntimeError("Cannot debinarize a tree whose symbol is a SplitTag")
         return Tree(self.type_, *self.debinarized_children())
 
 

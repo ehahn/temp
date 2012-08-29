@@ -98,8 +98,8 @@ class ParseTreebankTest(TestCase):
 
 class ExtractGrammarTest(TestCase):
     def test_simple(self):
-        data = tree("S", tree("A", "b"), tree("B", "c"))
-        self.assertEqual(set(extract_grammar(data)),
+        data = tree("S", tree("A", "b"), tree("B", "c")).hashable()
+        self.assertEqual(set(extract_grammar({data})),
             {
                 Rule("S", ["A", "B"]),
                 Rule("A", [PosTerminal("b")]),

@@ -66,10 +66,11 @@ def count_rules(tree):
     return ret
 
 
-def extract_grammar(tree):
+def extract_grammar(trees):
     rules = set()
-    for left_symbol, right_dict in count_rules(tree).items():
-        total = sum(count for right_symbols, count in right_dict.items())
-        for right_symbols, count in right_dict.items():
-            rules.add(Rule(left_symbol, right_symbols, count / total))
+    for tree in trees:
+        for left_symbol, right_dict in count_rules(tree).items():
+            total = sum(count for right_symbols, count in right_dict.items())
+            for right_symbols, count in right_dict.items():
+                rules.add(Rule(left_symbol, right_symbols, count / total))
     return Grammar(rules)

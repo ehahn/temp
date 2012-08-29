@@ -19,7 +19,7 @@ class logging_iterator_wrapper:
         try:
             ret = next(self._it)
         except StopIteration:
-            debug("{}:stop", self._funcname)
+            debug("{}:exit iterator", self._funcname)
             raise
         else:
             debug("{}:yield:{}", self._funcname, ret)
