@@ -88,7 +88,7 @@ class ParseTreebankTest(TestCase):
         data = "(S (FOO foo) (-NONE- *))"
         self.assertEqual(treeset(parse_treebank(data)), expected)
 
-    def test_multiple(self):
+    def test_multiple(self): 
         data = "(S (FOO foo)) " + TESTDATA_SIMPLE
         it = iter(parse_treebank(data))
         self.assertEqual(next(it), tree("S", tree("FOO", "FOO")))
@@ -106,6 +106,21 @@ class ExtractGrammarTest(TestCase):
                 Rule("B", [PosTerminal("c")])
             }
             )
+
+    def test_probability(self):
+        data = [
+            tree("S", tree("X", "x"), tree("Y", "y")),
+            tree("S", tree("A", "a"), tree("A", "b"))
+        ]
+        self.assertEqual(set(extract_grammar(data)),
+        {
+            Rule("S", ["X", "Y"], probability=0.5),
+            Rule("S", ["A", "A"], probability=0.5),
+            Rule("X", [PosTerminal("x")], probability=1),
+            Rule("Y", [PosTerminal("y")], probability=1),
+            Rule("A", [PosTerminal("a")], probability=0.5),
+            Rule("A", [PosTerminal("b")], probability=0.5)
+        })
 
 
 

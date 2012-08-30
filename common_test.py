@@ -75,6 +75,7 @@ class TestTree(TestCase):
         expected = tree("A", "B", "C", "D", "E")
         self.assertEqual(data.debinarized(), expected)
 
+
 class TestGrammar(TestCase):
     def setUp(self):
         self.g = Grammar(grammar)

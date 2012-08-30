@@ -2,7 +2,9 @@ from collections import deque, defaultdict, Counter
 from common import Tree, PosTerminal, Grammar, Rule
 from util import empty
 import util
+import itertools
 import re
+import log
 
 TOKEN_REGEX = re.compile(r"(\(|\)|[^ \n\t\)\(]+)")
 def tokenize(data):
@@ -53,24 +55,23 @@ def parse_treebank(data):
                 else:
                     cur.children.append(Tree(PosTerminal(cur.type_)))
 
-def count_rules(tree):
+def count_rules(trees):
     ret = defaultdict(Counter)
-    for subtree in tree.subtrees:
-        right_symbols = tuple(child.type_ for child in subtree.children)
-        if not empty(right_symbols):
+    for subtree in itertools.chain(*(tree.subtrees for tree in trees)):
+        if not subtree.is_terminal:
             left_symbol = subtree.type_
             ret[left_symbol][tuple(child.type_ for child in subtree.children)] += 1
-        else:
-            # left_symbol is a terminal
-            pass
     return ret
 
 
 def extract_grammar(trees):
     rules = set()
-    for tree in trees:
-        for left_symbol, right_dict in count_rules(tree).items():
-            total = sum(count for right_symbols, count in right_dict.items())
-            for right_symbols, count in right_dict.items():
-                rules.add(Rule(left_symbol, right_symbols, count / total))
+    for left_symbol, right_dict in count_rules(trees).items():
+        total = sum(count for right_symbols, count in right_dict.items())
+        log.debug("extract_grammar:total={}", total)
+        for right_symbols, count in right_dict.items():
+            log.debug("extract_grammar:count={}", count)
+            log.debug("extract_grammar:left_symbol={}", left_symbol)
+            log.debug("extract_grammar:right_symbols={}", right_symbols)
+            rules.add(Rule(left_symbol, right_symbols, count / total))
     return Grammar(rules)

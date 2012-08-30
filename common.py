@@ -45,7 +45,11 @@ class AbstractTree:
 
     @property
     def is_terminal(self):
-        return isinstance(self.type_, Terminal)
+        if isinstance(self.type_, Terminal):
+            assert empty(self.children)
+            return True
+        else:
+            return False
 
     @property
     def is_binarized(self):

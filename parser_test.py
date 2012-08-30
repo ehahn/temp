@@ -13,14 +13,6 @@ class TreeTest(TestCase):
         tree = HashableTree(None, *children)
         self.assertEqual(tree.children, tuple(children))
 
-#class TestCNF(TestCase):
-#    def test_binarize(self):
-#        grammar = {
-#            Rule("a", ["b", "c", "d"], 1)
-#        }
-#        expected = 
-#        self.assertEquals(
-
 WORDTREE = HashableTree("S",
             HashableTree("NP", HashableTree("she")),
             HashableTree("VP",
