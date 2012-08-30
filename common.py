@@ -141,7 +141,8 @@ class Rule:
 
     def __eq__(self, other):
         return self.left_side == other.left_side and \
-            self.right_side == other.right_side
+            self.right_side == other.right_side and \
+            self.probability == other.probability
 
     def __hash__(self):
         return 23 * hash(self.left_side) + 29 * hash(self.right_side)
@@ -173,6 +174,9 @@ class Probability:
 
     def __repr__(self):
         return "Probability(" + repr(self._prob) + ")"
+
+    def __eq__(self, other):
+        return self._prob == other._prob
 
 
 class Terminal:

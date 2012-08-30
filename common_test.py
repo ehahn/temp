@@ -38,6 +38,11 @@ class TestRule(TestCase):
         rule3 = Rule("a", ["b", "c"])
         self.assertEqual(rule1, rule3)
 
+    def test_eq_probability(self):
+        rule1 = Rule("a", ["b", "c"], probability=1)
+        rule2 = Rule("a", ["b", "c"], probability=0.1)
+        self.assertNotEqual(rule1, rule2)
+
     def test_str(self):
         rule = Rule("a", ["apfel"])
         self.assertEqual(rule.right_side[0], "apfel")
@@ -135,6 +140,19 @@ class TestGrammarUnary(TestCase):
             Rule("S", ["NP", "VP"]),
             Rule("VP", ["V"])
         })
+
+class TestProbability(TestCase):
+    def test_eq(self):
+        prob1 = Probability(1)
+        prob2 = Probability(0.5)
+        prob3 = Probability(1)
+        prob4 = Probability(1.0)
+        self.assertNotEqual(prob1, prob2)
+        self.assertEqual(prob1, prob3)
+        self.assertEqual(prob1, prob4)
+        self.assertNotEqual(prob2, prob3)
+        self.assertNotEqual(prob2, prob4)
+        self.assertEqual(prob3, prob4)
 
 
 
