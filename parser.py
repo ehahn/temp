@@ -71,15 +71,3 @@ def parse(grammar, text, keep_posleafs=False):
             replace_leafs_by_words(tree, text)
     return ret_trees
 
-
-def to_cnf(grammar):
-    """
-    Transforms a grammar to almost-CNF form. Unary rules are not touched.
-
-    Returns a list of Rule objects.
-    """
-    ret = set()
-    for rule in grammar:
-        ret |= set(rule.split())
-    return ret
-    # TODO: chain rules, empty right hand

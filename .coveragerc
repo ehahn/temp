@@ -1,0 +1,11 @@
+[run]
+branch = on
+
+[report]
+omit =
+    log.py
+
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    log.warn

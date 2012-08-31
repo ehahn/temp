@@ -15,6 +15,22 @@ class TestHashableTree(TestCase):
         for child in htree.children:
             self.assertIsInstance(child, HashableTree)
 
+    def test_hashable(self):
+        obj = tree("a", "b").hashable()
+        assert isinstance(obj, HashableTree)
+        self.assertEqual(obj, obj.hashable())
+
+    def test_preterminals(self):
+        tree = POSTREE
+        result = list(tree.preterminals())
+        expected = [
+            HashableTree("NP", HashableTree(PosTerminal("NP"))),
+            HashableTree("V", HashableTree(PosTerminal("V"))),
+            HashableTree("Det", HashableTree(PosTerminal("Det"))),
+            HashableTree("N", HashableTree(PosTerminal("N")))
+        ]
+        self.assertEqual(result, expected)
+
 class TestRule(TestCase):
     def test_split_simple(self):
         rule = Rule("a", ["b", "c"])
@@ -47,18 +63,10 @@ class TestRule(TestCase):
         rule = Rule("a", ["apfel"])
         self.assertEqual(rule.right_side[0], "apfel")
 
+    def test_repr(self):
+        rule = Rule("a", ["b"])
+        self.assertIsInstance(repr(rule), str)
 
-class TestHashableTree(TestCase):
-    def test_preterminals(self):
-        tree = POSTREE
-        result = list(tree.preterminals())
-        expected = [
-            HashableTree("NP", HashableTree(PosTerminal("NP"))),
-            HashableTree("V", HashableTree(PosTerminal("V"))),
-            HashableTree("Det", HashableTree(PosTerminal("Det"))),
-            HashableTree("N", HashableTree(PosTerminal("N")))
-        ]
-        self.assertEqual(result, expected)
 
 class TestTree(TestCase):
     def test_debinarized(self):
@@ -74,6 +82,30 @@ class TestTree(TestCase):
         )
         expected = tree("A", "B", "C", "D", "E")
         self.assertEqual(data.debinarized(), expected)
+
+    def test_wrong_argument(self):
+        class NotTree1:
+            children = []
+
+        class NotTree2:
+            type_ = "foo"
+
+        class NotTree3:
+            children = [NotTree1()]
+
+        class NotTree4:
+            children = [NotTree2()]
+
+        class NotTree5:
+            pass
+
+        class IsTree:
+            children = []
+            type_= "foo"
+
+        for obj in (cls() for cls in [NotTree1, NotTree2, NotTree3, NotTree4, NotTree5]):
+            self.assertRaises(TypeError, lambda: Tree("dummy", obj))
+        Tree("dummy", IsTree())
 
 
 class TestGrammar(TestCase):

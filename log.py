@@ -3,6 +3,8 @@ if __debug__:
     logging.basicConfig(level=logging.DEBUG)
 def debug(string, *params):
     logging.debug(str(string).format(*params))
+def warn(string, *params):
+    logging.warn(str(string).format(*params))
 
 def is_generator(obj):
     return hasattr(obj, "__next__")

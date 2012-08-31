@@ -4,14 +4,10 @@ import log
 
 class AbstractTree:
     def __init__(self, type_, *children):
-        for child in children:
-            if not isinstance(child, AbstractTree):
-                raise RuntimeError("{} is not an instance of AbstractTree".format(child))
+        if not all((hasattr(child, "children") and hasattr(child, "type_")) for child in children):
+            raise TypeError
         self.type_ = type_
         self.probability = Probability(1)
-
-    def set_probability(self, prob: float):
-        self.probability = Probability(prob)
 
     def __eq__(self, other):
         ret = tuple(self.children) == tuple(other.children) and self.type_ == other.type_
@@ -51,10 +47,6 @@ class AbstractTree:
         else:
             return False
 
-    @property
-    def is_binarized(self):
-        return isinstance(self.type_, SplitTag)
-
     def prune_empty(self):
         agenda = deque([self])
         while not empty(agenda):
@@ -85,7 +77,7 @@ class AbstractTree:
     @log.log
     def debinarized(self):
         if isinstance(self.type_, SplitTag):
-            raise RuntimeError("Cannot debinarize a tree whose symbol is a SplitTag")
+            log.warn("debinarized:debinarizing {} whose type_ is an instance of SplitTag", self)
         return Tree(self.type_, *self.debinarized_children())
 
 
