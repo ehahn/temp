@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import sys
 
 from collections import deque, defaultdict, Counter
@@ -7,6 +9,7 @@ import util
 import itertools
 import re
 import log
+import storage
 
 TOKEN_REGEX = re.compile(r"(\(|\)|[^ \n\t\)\(]+)")
 def tokenize(data):
@@ -24,7 +27,7 @@ def remove_additional_tag(token):
 
 def parse_treebank(data):
     """
-    Parse a file or string containing a treebank.
+    Parse a string containing a treebank.
 
     Returns an iterator yielding all trees found in the treebank.
     """
@@ -57,9 +60,12 @@ def parse_treebank(data):
                 else:
                     cur.children.append(Tree(PosTerminal(cur.type_)))
 
+@log.log
 def count_rules(trees):
     ret = defaultdict(Counter)
-    for subtree in itertools.chain(*(tree.subtrees for tree in trees)):
+    for subtree in itertools.chain.from_iterable(
+            tree.subtrees for tree in trees):
+        #log.debug("count_rules.ret:size:{}", asizeof(ret))
         if not subtree.is_terminal:
             left_symbol = subtree.type_
             ret[left_symbol][tuple(child.type_ for child in subtree.children)] += 1
@@ -78,9 +84,27 @@ def extract_grammar(trees):
             rules.add(Rule(left_symbol, right_symbols, count / total))
     return Grammar(rules)
 
-def main(argv):
-    raise NotImplementedError
 
+def trees_from_files(files):
+    for file in files:
+        log.info("Reading file {}", file.name)
+        contents = file.read() # Files shouldn't be larger than 100k in size so this is fine
+        for tree in parse_treebank(contents):
+            yield tree
+
+def files_from_paths(paths):
+    for path in paths:
+        y = open(path)
+        yield y
+        y.close()
+        log.debug("files_from_paths:closed {}", y)
+
+def main(argv):
+    paths = argv[1:]
+    log.info("Training from files: {}", paths)
+    grammar = extract_grammar( trees_from_files(files_from_paths(paths)))
+    with storage.GrammarWriter() as writer:
+        writer.write(grammar)
 
 
 if __name__ == '__main__':
