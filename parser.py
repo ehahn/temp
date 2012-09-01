@@ -1,12 +1,18 @@
 #! /usr/bin/env python3.2
 
+import sys
 from collections import defaultdict
 from copy import copy
 from util import irange
 from common import HashableTree, Grammar, SplitTag, PosTerminal, HashableTree
+import log
 
+try:
+    import cPickle as pickle
+except ImportError:
+    log.info("cPickle not found, importing pickle")
+    import pickle
 
-        
 
 def init_chart(grammar, text):
     ret = defaultdict(set)
@@ -71,3 +77,9 @@ def parse(grammar, text, keep_posleafs=False):
             replace_leafs_by_words(tree, text)
     return ret_trees
 
+
+def main(argv):
+    pass
+
+if __name__ == '__main__':
+    main(sys.argv)

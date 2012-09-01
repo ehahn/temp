@@ -13,3 +13,10 @@ def characters(data):
     """
     # TODO: file support
     return data
+
+class SelfClosingContextManager:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, var0, var1, var2):
+        self.close()

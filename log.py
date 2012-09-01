@@ -5,6 +5,8 @@ def debug(string, *params):
     logging.debug(str(string).format(*params))
 def warn(string, *params):
     logging.warn(str(string).format(*params))
+def info(string, *params):
+    logging.info(str(string).format(*params))
 
 def is_generator(obj):
     return hasattr(obj, "__next__")

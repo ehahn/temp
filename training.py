@@ -1,3 +1,5 @@
+import sys
+
 from collections import deque, defaultdict, Counter
 from common import Tree, PosTerminal, Grammar, Rule
 from util import empty
@@ -75,3 +77,11 @@ def extract_grammar(trees):
             log.debug("extract_grammar:right_symbols={}", right_symbols)
             rules.add(Rule(left_symbol, right_symbols, count / total))
     return Grammar(rules)
+
+def main(argv):
+    raise NotImplementedError
+
+
+
+if __name__ == '__main__':
+    main(sys.argv)
