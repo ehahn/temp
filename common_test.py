@@ -67,6 +67,17 @@ class TestRule(TestCase):
         rule = Rule("a", ["b"])
         self.assertIsInstance(repr(rule), str)
 
+    def test_split_probability1(self):
+        rule = Rule("a", ["b", "c", "d"], probability=0.3)
+        self.assertEqual(
+            {
+            Rule("a", ["b", SplitTag(["c", "d"])], probability=0.3),
+            Rule(SplitTag(["c", "d"]), ["c", "d"], probability=1)
+            },
+            set(rule.split())
+        )
+            
+
 
 class TestTree(TestCase):
     def test_debinarized(self):

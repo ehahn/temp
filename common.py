@@ -121,18 +121,21 @@ class Rule:
         self.right_side = tuple(right_side)
         self.probability = Probability(probability)
 
+    @property
+    def is_created_by_split(self):
+        return isinstance(self.left_side, SplitTag)
+
     def split(self):
         if len(self.right_side) <= 2:
-            
             yield self
         else:
+            passed_probability = 1 if self.is_created_by_split else self.probability
             split_tag = SplitTag(self.right_side[1:])
             
-            yield Rule(self.left_side, [self.right_side[0], split_tag])
-            next_rule = Rule(split_tag, self.right_side[1:])
+            yield Rule(self.left_side, [self.right_side[0], split_tag], probability=passed_probability)
+            next_rule = Rule(split_tag, self.right_side[1:], 1)
             for rule in next_rule.split():
                 assert len(rule.right_side) == 2
-                
                 yield rule
 
     def __eq__(self, other):
@@ -165,14 +168,17 @@ class Probability:
     Whenever I need to store a probability, I use this class instead of a float.
     That way I can easily replace how I store them.
     """
-    def __init__(self, prob: float):
-        self._prob = prob
+    def __init__(self, prob):
+        self._prob = float(prob)
 
     def __repr__(self):
         return "Probability(" + repr(self._prob) + ")"
 
     def __eq__(self, other):
         return self._prob == other._prob
+
+    def __float__(self):
+        return self._prob
 
 
 class Terminal:
