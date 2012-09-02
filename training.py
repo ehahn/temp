@@ -82,7 +82,7 @@ def extract_grammar(trees):
             log.debug("extract_grammar:left_symbol={}", left_symbol)
             log.debug("extract_grammar:right_symbols={}", right_symbols)
             rules.add(Rule(left_symbol, right_symbols, count / total))
-    return Grammar(rules)
+    return Grammar(rules).binarized()
 
 
 def trees_from_files(files):

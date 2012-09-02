@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from unittest import TestCase, main
-from common import Tree, PosTerminal, Rule
+from common import Tree, PosTerminal, Rule, SplitTag
 from testutil import tree
 
 from training import *
@@ -121,6 +121,19 @@ class ExtractGrammarTest(TestCase):
             Rule("A", [PosTerminal("a")], probability=0.5),
             Rule("A", [PosTerminal("b")], probability=0.5)
         })
+
+    def test_binarization(self):
+        data = [
+            tree("S", "a", "b", "c"),
+            tree("S", "x", "y")
+        ]
+        self.assertEqual(set(extract_grammar(data)),
+        {
+            Rule("S", [PosTerminal("a"), SplitTag([PosTerminal("b"), PosTerminal("c")])], probability=0.5),
+            Rule(SplitTag([PosTerminal("b"), PosTerminal("c")]), [PosTerminal("b"), PosTerminal("c")], probability=1),
+            Rule("S", [PosTerminal("x"), PosTerminal("y")], probability=0.5)
+            }
+        )
 
 
 
