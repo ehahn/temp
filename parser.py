@@ -7,13 +7,6 @@ from util import irange
 from common import HashableTree, Grammar, SplitTag, PosTerminal, HashableTree
 import log
 
-try:
-    import cPickle as pickle
-except ImportError:
-    log.info("cPickle not found, importing pickle")
-    import pickle
-
-
 def init_chart(grammar, text):
     ret = defaultdict(set)
     for raw_i, word in enumerate(text):
@@ -28,6 +21,7 @@ def init_chart(grammar, text):
 
 def build_chart(grammar, text):
     grammar = Grammar(grammar)
+    assert all(len(rule.right_side) <= 2 for rule in grammar.rules)
     ret = init_chart(grammar, text)
     text_len = len(text)
     def apply_binary_rules():
