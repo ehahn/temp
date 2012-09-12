@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.2
 
 from unittest import TestCase, main, skip, expectedFailure
-from parser import *
-from common import Tree, AbstractTree, Rule
-from util import empty
-from testutil import POSTREE, grammar, unary_grammar, unary_grammar2
+from .parser import *
+from .common import Tree, AbstractTree, Rule
+from .util import empty
+from .testutil import POSTREE, grammar, unary_grammar, unary_grammar2
 
 @skip
 class TreeTest(TestCase):

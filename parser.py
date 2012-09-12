@@ -3,9 +3,9 @@
 import sys
 from collections import defaultdict
 from copy import copy
-from util import irange
-from common import HashableTree, Grammar, SplitTag, PosTerminal, HashableTree
-import log
+from .util import irange, files_from_paths
+from .common import HashableTree, Grammar, SplitTag, PosTerminal, HashableTree
+from . import log
 
 def init_chart(grammar, text):
     ret = defaultdict(set)

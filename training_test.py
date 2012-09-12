@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 from unittest import TestCase, main
-from common import Tree, PosTerminal, Rule, SplitTag
-from testutil import tree
+from .common import Tree, PosTerminal, Rule, SplitTag
+from .testutil import tree
+from glob import glob
 
-from training import *
+from .training import *
 
 TESTDATA_SIMPLE =  \
 """ ( (S
@@ -134,6 +135,13 @@ class ExtractGrammarTest(TestCase):
             Rule("S", [PosTerminal("x"), PosTerminal("y")], probability=0.5)
             }
         )
+
+class MainTest(TestCase):
+    def test_runs(self):
+        paths = glob("wsj/00/wsj_000*") + glob("wsj/01/wsj_011*")
+        main(["training"] + paths)
+
+        
 
 
 

@@ -1,6 +1,6 @@
 from unittest import TestCase
-from storage import *
-from common import Grammar, Rule
+from .storage import *
+from .common import Grammar, Rule
 
 class GrammarTestCase(TestCase):
     def setUp(self):

@@ -3,13 +3,12 @@
 import sys
 
 from collections import deque, defaultdict, Counter
-from common import Tree, PosTerminal, Grammar, Rule
-from util import empty
-import util
-import itertools
-import re
-import log
-import storage
+from .common import Tree, PosTerminal, Grammar, Rule
+from .util import empty, files_from_paths
+from . import util
+import itertools, re
+from . import log
+from . import storage
 
 TOKEN_REGEX = re.compile(r"(\(|\)|[^ \n\t\)\(]+)")
 def tokenize(data):
@@ -92,12 +91,6 @@ def trees_from_files(files):
         for tree in parse_treebank(contents):
             yield tree
 
-def files_from_paths(paths):
-    for path in paths:
-        y = open(path)
-        yield y
-        y.close()
-        log.debug("files_from_paths:closed {}", y)
 
 def main(argv):
     paths = argv[1:]

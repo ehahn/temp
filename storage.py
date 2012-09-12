@@ -1,5 +1,5 @@
-import log
-from util import SelfClosingContextManager
+from . import log
+from .util import SelfClosingContextManager
 try:
     import cPickle as pickle
 except ImportError:

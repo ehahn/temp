@@ -1,3 +1,5 @@
+from . import log
+
 def empty(x):
     assert not isinstance(x, bool)
     return not x
@@ -20,3 +22,14 @@ class SelfClosingContextManager:
 
     def __exit__(self, var0, var1, var2):
         self.close()
+
+
+def files_from_paths(paths):
+    """
+    Like (open(path) for path in paths), but also closes the files again.
+    """
+    for path in paths:
+        y = open(path)
+        yield y
+        y.close()
+        log.debug("files_from_paths:closed {}", y)

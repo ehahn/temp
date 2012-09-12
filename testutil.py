@@ -1,4 +1,4 @@
-from common import Tree, PosTerminal, HashableTree, Rule
+from .common import Tree, PosTerminal, HashableTree, Rule
 
 POSTREE = HashableTree("S",
             HashableTree("NP", HashableTree(PosTerminal("NP"))),

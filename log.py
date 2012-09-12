@@ -1,6 +1,7 @@
 import logging
-if __debug__:
-    logging.basicConfig(level=logging.DEBUG)
+
+#if __debug__:
+#    logging.basicConfig(level=logging.DEBUG)
 def debug(string, *params):
     logging.debug(str(string).format(*params))
 def warn(string, *params):

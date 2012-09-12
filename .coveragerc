@@ -9,3 +9,4 @@ exclude_lines =
     pragma: no cover
     def __repr__
     log.warn
+    if __name__ == '__main__':

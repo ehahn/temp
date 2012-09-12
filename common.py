@@ -1,6 +1,6 @@
 from collections import deque
-from util import empty
-import log
+from .util import empty
+from . import log
 
 class AbstractTree:
     def __init__(self, type_, *children):

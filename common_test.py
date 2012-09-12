@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
 
 from unittest import TestCase, main, skip
-from common import *
-from util import empty
-from testutil import POSTREE, unary_grammar, grammar, unary_grammar2, tree
-import log
+from .common import *
+from .util import empty
+from .testutil import POSTREE, unary_grammar, grammar, unary_grammar2, tree
+from . import log
 
 class TestHashableTree(TestCase):
     def test_hashable_children(self):
