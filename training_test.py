@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from unittest import TestCase, main
+from unittest import TestCase, main, skip
 from .common import Tree, PosTerminal, Rule, SplitTag
 from .testutil import tree
 from glob import glob
@@ -136,6 +136,7 @@ class ExtractGrammarTest(TestCase):
             }
         )
 
+@skip("Too slow")
 class MainTest(TestCase):
     def test_runs(self):
         paths = glob("wsj/00/wsj_000*") + glob("wsj/01/wsj_011*")
