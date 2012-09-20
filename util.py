@@ -34,8 +34,8 @@ def files_from_paths(paths):
         y.close()
         log.debug("files_from_paths:closed {}", y)
 
-def iter_eq(iter1, iter2):
-    if len(iter1) != len(iter2):
-        return False
-    else:
-        return all(i == j for i,j in itertools.izip(a,b))
+def ilen(iterator):
+    counter = 0
+    for element in iterator:
+        counter += 1
+    return counter

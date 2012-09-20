@@ -3,16 +3,19 @@ from .util import empty
 from . import log
 
 class AbstractTree:
-    def __init__(self, type_, *children):
+    def __init__(self, type_, *children, start=None, length=None):
         if not all((hasattr(child, "children") and hasattr(child, "type_")) for child in children):
             raise TypeError
         self.type_ = type_
         self.probability = Probability(1)
+        self._start = start
+        self._length = length
 
     def __eq__(self, other):
-        #ret = tuple(self.children) == tuple(other.children) and self.type_ == other.type_
-        #return ret
-        return True
+        return tuple(self.children) == tuple(other.children) \
+            and self.type_ == other.type_ #\
+#            and self._length == other._length \
+#            and self._start == other._start
 
     def __str__(self, indent=0):
         ret = " " * indent + "(" + str(self.type_) 
@@ -27,8 +30,9 @@ class AbstractTree:
         ret = " " * indent + self.__class__.__name__ + "(" + repr(self.type_) + ","
         for child in self.children:
             ret += child.__repr__(indent + 1)
-        ret += " " * indent + ")"
-        ret += "\n"
+        if self._start is not None:
+            ret += str.format(" " * indent + ",start={}, length={}", self._start, self._length)
+        ret += " " * indent + ")\n"
         return ret
 
     def preterminals(self):
@@ -37,6 +41,15 @@ class AbstractTree:
             cur = agenda.pop()
             if len(cur.children) == 1 and empty(cur.children[0].children):
                 yield cur
+            else:
+                agenda.extend(reversed(cur.children))
+
+    def terminals(self):
+        agenda = deque([self])
+        while not empty(agenda):
+            cur = agenda.pop()
+            if empty(cur.children):
+                yield cur.type_
             else:
                 agenda.extend(reversed(cur.children))
 
@@ -81,10 +94,15 @@ class AbstractTree:
             log.warn("debinarized:debinarizing {} whose type_ is an instance of SplitTag", self)
         return Tree(self.type_, *self.debinarized_children())
 
+    def is_equal_constituent(self, other):
+        return self.type_ == other.type_ and \
+            self._start == other._start and \
+            self._length == other._length
+
 
 class Tree(AbstractTree):
-    def __init__(self, type_, *children):
-        super().__init__(type_, *children)
+    def __init__(self, type_, *children, **kwargs):
+        super().__init__(type_, *children, **kwargs)
         self.children = list(children)
 
     def hashable(self):
@@ -92,8 +110,8 @@ class Tree(AbstractTree):
 
 
 class HashableTree(AbstractTree):
-    def __init__(self, type_, *children):
-        super().__init__(type_, *children)
+    def __init__(self, type_, *children, **kwargs):
+        super().__init__(type_, *children, **kwargs)
         self.children = tuple(children)
 
     def __hash__(self):

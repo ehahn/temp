@@ -99,19 +99,20 @@ class TestRule(TestCase):
 
 
 class TestTree(TestCase):
-    def test_debinarized(self):
-        data = Tree("A", 
-            Tree(PosTerminal("B")),
-            Tree(SplitTag(["C", "D", "E"]),
-                Tree(PosTerminal("C")),
-                Tree(SplitTag(["D", "E"]),
-                    Tree(PosTerminal("D")),
-                    Tree(PosTerminal("E"))
-                )
+    data = Tree("A", 
+        Tree(PosTerminal("B")),
+        Tree(SplitTag(["C", "D", "E"]),
+            Tree(PosTerminal("C")),
+            Tree(SplitTag(["D", "E"]),
+                Tree(PosTerminal("D")),
+                Tree(PosTerminal("E"))
             )
         )
+    )
+
+    def test_debinarized(self):
         expected = tree("A", "B", "C", "D", "E")
-        self.assertEqual(data.debinarized(), expected)
+        self.assertEqual(self.data.debinarized(), expected)
 
     def test_wrong_argument(self):
         class NotTree1:
@@ -136,6 +137,43 @@ class TestTree(TestCase):
         for obj in (cls() for cls in [NotTree1, NotTree2, NotTree3, NotTree4, NotTree5]):
             self.assertRaises(TypeError, lambda: Tree("dummy", obj))
         Tree("dummy", IsTree())
+
+    def test_terminals(self):
+        self.assertEqual(4, ilen(self.data.terminals()))
+        self.assertEqual([PosTerminal(x) for x in "BCDE"], list(self.data.terminals()))
+
+    def test_eq(self):
+        tree1 = tree("A", "b", "c")
+        tree2 = tree("A", "b", "c")
+        tree3 = tree("B", "b", "c")
+        tree4 = tree("A", "x", "y")
+        tree5 = tree("A", "b", "x")
+        self.assertNotEqual(tree1, tree3)
+        self.assertEqual(tree1, tree2)
+        self.assertNotEqual(tree1, tree3)
+        self.assertNotEqual(tree1, tree4)
+        self.assertNotEqual(tree1, tree5)
+        self.assertNotEqual(tree3, tree4)
+        self.assertNotEqual(tree3, tree5)
+        self.assertNotEqual(tree4, tree5)
+
+    @skip # Serves no benefit right now
+    def test_eq_start_length(self):
+        tree1 = Tree("A", start=0, length=5)
+        tree2 = Tree("B", start=0, length=5)
+        tree3 = Tree("A", start=1, length=5)
+        tree4 = Tree("A", start=0, length=23)
+        tree5 = Tree("A", start=0, length=5)
+        self.assertNotEqual(tree1, tree2)
+        self.assertNotEqual(tree1, tree3)
+        self.assertNotEqual(tree1, tree4)
+        self.assertEqual(tree1, tree5)
+        self.assertNotEqual(tree2, tree3)
+        self.assertNotEqual(tree2, tree4)
+        self.assertNotEqual(tree2, tree5)
+        self.assertNotEqual(tree3, tree4)
+        self.assertNotEqual(tree3, tree5)
+        self.assertNotEqual(tree4, tree5)
 
 
 class TestGrammar(TestCase):

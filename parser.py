@@ -29,12 +29,14 @@ def build_chart(grammar, text):
             left_children = ret[start, partition, rule.right_side[0]]
             right_children= ret[start+partition, length-partition, rule.right_side[1]]
             for left_child, right_child in zip(left_children, right_children):
-                ret[start, length, rule.left_side].add(HashableTree(rule.left_side, left_child, right_child))
+                ret[start, length, rule.left_side].add(HashableTree(
+                    rule.left_side, left_child, right_child, start=start, length=length))
     def apply_unary_rules():
         for rule in grammar.unary_rules:
             children = ret[start, length, rule.right_side[0]]
             for child in children:
-                ret[start, length, rule.left_side].add(HashableTree(rule.left_side, child))
+                ret[start, length, rule.left_side].add(HashableTree(
+                    rule.left_side, child, start=start, length=length))
     del text
     length = 1
     for start in irange(1, text_len-length + 1):
