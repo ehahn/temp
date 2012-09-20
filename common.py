@@ -10,8 +10,9 @@ class AbstractTree:
         self.probability = Probability(1)
 
     def __eq__(self, other):
-        ret = tuple(self.children) == tuple(other.children) and self.type_ == other.type_
-        return ret
+        #ret = tuple(self.children) == tuple(other.children) and self.type_ == other.type_
+        #return ret
+        return True
 
     def __str__(self, indent=0):
         ret = " " * indent + "(" + str(self.type_) 
@@ -23,7 +24,7 @@ class AbstractTree:
         return ret
 
     def __repr__(self, indent=0):
-        ret = " " * indent + "AbstractTree(" + repr(self.type_) + ","
+        ret = " " * indent + self.__class__.__name__ + "(" + repr(self.type_) + ","
         for child in self.children:
             ret += child.__repr__(indent + 1)
         ret += " " * indent + ")"

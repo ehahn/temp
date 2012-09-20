@@ -4,12 +4,11 @@ from unittest import TestCase, main, skip, expectedFailure
 from .parser import *
 from .common import Tree, AbstractTree, Rule
 from .util import empty
-from .testutil import POSTREE, grammar, unary_grammar, unary_grammar2
+from .testutil import POSTREE, grammar, unary_grammar, unary_grammar2, iter_eq
 
-@skip
 class TreeTest(TestCase):
     def test_multiple_children(self):
-        children = [1, 2]
+        children = [Tree(1), Tree(2)]
         tree = HashableTree(None, *children)
         self.assertEqual(tree.children, tuple(children))
 
@@ -75,7 +74,6 @@ class TestParse(TestCase):
                 for child in entry.children:
                     self.assertIsInstance(child, AbstractTree)
 
-    @skip
     def test_posprune(self):
         result = Grammar(grammar).rules
         for rule in result:
@@ -92,7 +90,8 @@ class TestParse(TestCase):
         self.assertEqual(list(found)[0], expected)
         self.assertEqual(len(found), 1)
         # This doesn't work as expected
-        #self.assertEqual(found, {expected})
+        self.assertTrue(iter_eq(found, {expected}))
+#    self.assertEqual(found, {expected})
 
 
 if __name__ == '__main__':

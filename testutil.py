@@ -1,4 +1,5 @@
 from .common import Tree, PosTerminal, HashableTree, Rule
+import itertools
 
 POSTREE = HashableTree("S",
             HashableTree("NP", HashableTree(PosTerminal("NP"))),
@@ -61,3 +62,8 @@ def tree(symbol, *children):
     return ret
 
 
+def iter_eq(iter1, iter2):
+    if len(iter1) != len(iter2):
+        return False
+    else:
+        return all(i == j for i,j in zip(iter1,iter2))

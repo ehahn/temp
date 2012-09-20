@@ -31,6 +31,25 @@ class TestHashableTree(TestCase):
         ]
         self.assertEqual(result, expected)
 
+    def test_eq_trivial(self):
+        self.assertEqual(POSTREE, POSTREE)
+
+    def test_eq_types(self):
+        tree1 = HashableTree("A")
+        tree2 = Tree("A")
+        self.assertEqual(tree1, tree2)
+
+    def test_eq_with_children_simple(self):
+        childa1 = Tree("A")
+        childb1 = Tree("B")
+        childa2 = Tree("A")
+        childb2 = Tree("B")
+        tree1 = Tree("A", childa1, childb1)
+        tree2 = Tree("A", childa2, childb2)
+        self.assertEqual(tree1, tree2)
+
+
+
 class TestRule(TestCase):
     def test_split_simple(self):
         rule = Rule("a", ["b", "c"])
@@ -198,7 +217,11 @@ class TestProbability(TestCase):
         self.assertNotEqual(prob2, prob4)
         self.assertEqual(prob3, prob4)
 
-
+class TestPosTerminal(TestCase):
+    def test_eq(self):
+        posterm1 = PosTerminal("A")
+        posterm2 = PosTerminal("A")
+        self.assertEqual(posterm1, posterm2)
 
 
 if __name__ == '__main__':
