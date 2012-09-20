@@ -2,7 +2,7 @@
 
 from unittest import TestCase, main, skip
 from .common import *
-from .util import empty
+from .util import empty, ilen
 from .testutil import POSTREE, unary_grammar, grammar, unary_grammar2, tree
 from . import log
 
